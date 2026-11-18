@@ -13,7 +13,7 @@ It started as a small prototype. This repository rebuilds it from scratch with a
 | Web | Next.js, React, Tailwind CSS, Radix primitives |
 | API | NestJS, TypeORM, PostgreSQL |
 | Shared | Zod contracts in `packages/contracts` |
-| Tests | Jest (API), Vitest (web), Testcontainers, Playwright (e2e) |
+| Tests | Vitest (API and web), Testcontainers, Playwright (e2e) |
 
 Why each choice: see [`docs/adr`](docs/adr).
 
