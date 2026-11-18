@@ -5,4 +5,5 @@ export { HistoricalOrderItem } from './historical-order-item.entity.js';
 export { OrderRequest } from './order-request.entity.js';
 export { OrderRequestItem } from './order-request-item.entity.js';
 export { SalesRep } from './sales-rep.entity.js';
+export { Settings } from './settings.entity.js';
 export { Wine } from './wine.entity.js';
