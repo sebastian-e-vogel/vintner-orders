@@ -26,6 +26,23 @@ packages/contracts   Zod schemas and types shared by both
 docs/adr             Architecture decision records
 ```
 
+## Local database
+
+Needs Docker. From the repo root:
+
+```
+cp .env.example .env
+pnpm db:up
+```
+
+`db:up` starts PostgreSQL 18 and waits until it is healthy. Connect with the values from `.env`, for example:
+
+```
+psql postgresql://vintner:vintner_local_password@localhost:5432/vintner_orders
+```
+
+`pnpm db:down` stops the container and keeps the data (named volume `postgres_data`). To wipe the data too, run `docker compose down -v`.
+
 ## Status
 
 Scaffolding in progress. Setup instructions will land here with the first runnable commit. The plan is in [`ROADMAP.md`](ROADMAP.md).
