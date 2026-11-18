@@ -43,6 +43,19 @@ psql postgresql://vintner:vintner_local_password@localhost:5432/vintner_orders
 
 `pnpm db:down` stops the container and keeps the data (named volume `postgres_data`). To wipe the data too, run `docker compose down -v`.
 
+## Migrations
+
+Schema changes are versioned migrations; `synchronize` is off. Migrations run **by hand**, never when the API starts:
+
+```
+pnpm --filter @vintner/api migration:run
+pnpm --filter @vintner/api migration:revert
+pnpm --filter @vintner/api migration:generate --name=AddThing
+pnpm --filter @vintner/api migration:create --name=AddThing
+```
+
+The API reads the database settings from the root `.env` and exits at startup naming any variable that is missing or invalid. The migration scripts build the API first and run the CLI on `dist/`.
+
 ## Status
 
 Scaffolding in progress. Setup instructions will land here with the first runnable commit. The plan is in [`ROADMAP.md`](ROADMAP.md).
