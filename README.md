@@ -60,6 +60,8 @@ The API reads the database settings from the root `.env` and exits at startup na
 
 `pnpm test:integration` runs the API tests against a real PostgreSQL 18 started by Testcontainers. It needs Docker running; no `.env` or local Postgres. `pnpm test` stays Docker-free.
 
+`pnpm test:e2e` boots the full `AppModule` against a PostgreSQL 18 container (migrations applied) started by Testcontainers. It also needs Docker running; no `.env` or local Postgres.
+
 ## Status
 
 Scaffolding in progress. Setup instructions will land here with the first runnable commit. The plan is in [`ROADMAP.md`](ROADMAP.md).
