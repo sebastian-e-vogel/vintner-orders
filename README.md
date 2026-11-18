@@ -1,0 +1,31 @@
+# Vintner Orders
+
+A phone-order desk for a fictional wine distributor. Sales reps take calls from restaurants, wine bars and hotels, find the right wine among near-identical labels, record quantities, and save an order request for later review.
+
+It started as a small prototype. This repository rebuilds it from scratch with a different stack and a wider scope: a real API, a relational model with proper indexes, order lifecycle with stock commitments, background jobs and real-time updates. The history here is the history of that rebuild.
+
+> Everything in this repository is fictional: wineries, customers, people and data.
+
+## Stack
+
+| Area | Choice |
+| --- | --- |
+| Web | Next.js, React, Tailwind CSS, Radix primitives |
+| API | NestJS, TypeORM, PostgreSQL |
+| Shared | Zod contracts in `packages/contracts` |
+| Tests | Jest (API), Vitest (web), Testcontainers, Playwright (e2e) |
+
+Why each choice: see [`docs/adr`](docs/adr).
+
+## Layout
+
+```
+apps/web             Next.js, UI only
+apps/api             NestJS, owns the database
+packages/contracts   Zod schemas and types shared by both
+docs/adr             Architecture decision records
+```
+
+## Status
+
+Scaffolding in progress. Setup instructions will land here with the first runnable commit. The plan is in [`ROADMAP.md`](ROADMAP.md).
