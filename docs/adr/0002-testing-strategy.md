@@ -1,6 +1,6 @@
 # 0002. Testing strategy
 
-Status: accepted
+Status: superseded in part by 0003 (API test runner only)
 
 ## Context
 Correctness here is about stock rules, idempotency and concurrency, which unit tests alone cannot prove.
