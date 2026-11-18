@@ -13,6 +13,7 @@ Each phase leaves the repository in a demoable state. Performance work always re
 - [ ] Save an order request: validation, stock check, idempotent save
 - [ ] Order screen: caller, wines, last time, recent wines, request panel, review and save
 - [ ] Saved requests list
+- [ ] OpenAPI docs (Swagger UI) generated from `packages/contracts`, so the Zod schemas stay the single source of truth
 - [ ] Unit, integration and e2e tests for the above
 
 ## 2. Make it slow, then fast
