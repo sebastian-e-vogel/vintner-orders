@@ -28,6 +28,10 @@ Start only when the user says which tickets are ready.
 
 1. Delegate one ticket at a time to its owner, passing the issue number and full text. A ticket whose
    dependency is not merged yet waits, because new work branches from `develop`.
+   - Before delegating, run `git fetch origin` and create the worktree
+     `.claude/worktrees/agent-<owner>-<issue>-<short-description>` on a new branch
+     `<type>/<issue>-<short-description>` from `origin/develop`, then `git branch --unset-upstream`.
+     Pass its path and branch to the agent. Example: `agent-backend-4-typeorm-migrations`.
 2. Keep track of which agent ID worked on which ticket.
 3. Report to the user: branch, worktree path, what changed and why, and the decisions that are worth
    reviewing. Then stop and let the user review. Nothing is committed at this point.
@@ -45,6 +49,7 @@ Only when the user says so:
 
 1. Push the branch.
 2. Open the PR against `develop` with `gh pr create --base develop`, with `Closes #<issue>` in the body.
-3. Give the user the link.
+3. Give the user the link. 
+4. Remove the ticket's worktree with `git worktree remove <path>`, without `--force`. If it refuses, tell the user what is left.
 
 The user merges. You never merge, and never push before the user asks.
