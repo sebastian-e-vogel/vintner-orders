@@ -56,6 +56,10 @@ pnpm --filter @vintner/api migration:create --name=AddThing
 
 The API reads the database settings from the root `.env` and exits at startup naming any variable that is missing or invalid. The migration scripts build the API first and run the CLI on `dist/`.
 
+## Integration tests
+
+`pnpm test:integration` runs the API tests against a real PostgreSQL 18 started by Testcontainers. It needs Docker running; no `.env` or local Postgres. `pnpm test` stays Docker-free.
+
 ## Status
 
 Scaffolding in progress. Setup instructions will land here with the first runnable commit. The plan is in [`ROADMAP.md`](ROADMAP.md).
