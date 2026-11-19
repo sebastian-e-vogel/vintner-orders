@@ -18,6 +18,7 @@ function renderCaller(customerId = '', policy: InventoryPolicy = 'strict') {
       customers={customersFixture}
       customerId={customerId}
       wines={winesFixture}
+      recentWines={[]}
       policy={policy}
       lastTime={lastTimeFixture[customerId]}
     />,
@@ -28,6 +29,7 @@ function renderCaller(customerId = '', policy: InventoryPolicy = 'strict') {
         customers={customersFixture}
         customerId={id}
         wines={winesFixture}
+        recentWines={[]}
         policy={policy}
         lastTime={lastTimeFixture[id]}
       />,
@@ -93,6 +95,30 @@ describe('NewOrderDraft', () => {
     const { rerenderWith } = renderCaller(bellavista.id);
     rerenderWith(harbour.id);
     expect(screen.getByText(harbour.contactName)).toBeVisible();
+  });
+
+  it('puts a picked recent wine in the request with an empty quantity', async () => {
+    const user = userEvent.setup();
+    render(
+      <NewOrderDraft
+        customers={customersFixture}
+        customerId=""
+        wines={winesFixture}
+        recentWines={[winesFixture[0]]}
+        policy="strict"
+      />,
+    );
+    await user.click(
+      screen.getByRole('button', { name: /^Enter quantity for/ }),
+    );
+    expect(
+      screen.getByRole('button', { name: /already in this request$/ }),
+    ).toBeVisible();
+    expect(
+      screen.getByLabelText(/^Quantity for/, {
+        selector: `#quantity-${winesFixture[0].id}`,
+      }),
+    ).toHaveValue('');
   });
 });
 

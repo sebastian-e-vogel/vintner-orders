@@ -16,6 +16,16 @@ describe('Home page', () => {
     expect(screen.getByLabelText('Customer')).toHaveValue('');
   });
 
+  it("shows the rep's recent wines, at most 10", async () => {
+    await renderHome({});
+    expect(
+      screen.getByRole('heading', { name: 'Your recent wines' }),
+    ).toBeVisible();
+    expect(
+      screen.getByText(/^The last 10 different wines you added/),
+    ).toBeVisible();
+  });
+
   it('selects the customer from ?customer=', async () => {
     await renderHome({ customer: 'cus_harbour' });
     expect(screen.getByLabelText('Customer')).toHaveValue('cus_harbour');
