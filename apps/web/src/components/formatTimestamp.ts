@@ -1,4 +1,4 @@
-// Display zone for every timestamp on the settings screen, until a per-user zone exists.
+// Display zone for every displayed timestamp, until a per-user zone exists.
 export const DISPLAY_TIME_ZONE = 'UTC';
 
 const dateFormat = new Intl.DateTimeFormat('en-US', {

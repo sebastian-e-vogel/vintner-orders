@@ -6,8 +6,6 @@ export type PolicyOptionData = {
   tagline: string;
   summary: string;
   bullets: string[];
-  pill: string;
-  dot: string;
 };
 
 export const policyOptions: PolicyOptionData[] = [
@@ -22,8 +20,6 @@ export const policyOptions: PolicyOptionData[] = [
       'A wine with no stock cannot be added to a request.',
       'Lines above stock show "Over stock by N", and the rep lowers them before saving.',
     ],
-    pill: 'bg-strict-soft text-strict',
-    dot: 'bg-strict',
   },
   {
     value: 'flexible',
@@ -35,8 +31,6 @@ export const policyOptions: PolicyOptionData[] = [
       'The quantity the customer asked for is stored unchanged.',
       'Each short line shows "Short by N" to reps and reviewers.',
     ],
-    pill: 'bg-flexible-soft text-flexible',
-    dot: 'bg-flexible',
   },
 ];
 
