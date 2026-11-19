@@ -54,7 +54,12 @@ export const orderRequestSchema = z.object({
   lines: z
     .array(orderLineSchema)
     .min(1, 'Add at least one wine.')
-    .transform(combineLines)
+    // Lowercase first so the same wine in different cases is one line.
+    .transform((lines) =>
+      combineLines(
+        lines.map((line) => ({ ...line, wineId: line.wineId.toLowerCase() })),
+      ),
+    )
     .refine(
       (lines) => lines.every((line) => line.quantity <= MAX_LINE_QUANTITY),
       `The total for one wine can be at most ${MAX_LINE_QUANTITY}. Lower the quantity.`,

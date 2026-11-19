@@ -99,6 +99,18 @@ describe('orderRequestSchema lines', () => {
     ).toBe(true);
   });
 
+  it('treats the same wine id in another letter case as one wine', () => {
+    const result = parse({
+      lines: [
+        { wineId: A.toUpperCase(), quantity: 1 },
+        { wineId: A, quantity: 2 },
+      ],
+    });
+    expect(result.success && result.data.lines).toEqual([
+      { wineId: A, quantity: 3 },
+    ]);
+  });
+
   it('rejects duplicates that sum over 999', () => {
     const result = parse({
       lines: [
