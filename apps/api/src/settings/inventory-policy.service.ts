@@ -16,11 +16,17 @@ const missingRow = () =>
 export class InventoryPolicyService {
   constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
-  // Pass the manager of an open transaction to read inside it.
+  // Pass the manager of an open transaction to read inside it. With
+  // 'pessimistic_read' (FOR SHARE, needs a transaction) set() waits until that
+  // transaction ends, so the policy cannot change while the caller uses it.
   async get(
     manager: EntityManager = this.dataSource.manager,
+    lock?: 'pessimistic_read',
   ): Promise<InventoryPolicyResponse> {
-    const row = await manager.getRepository(Settings).findOneBy({ id: true });
+    const row = await manager.getRepository(Settings).findOne({
+      where: { id: true },
+      lock: lock && { mode: lock },
+    });
     if (!row) throw missingRow();
     return toResponse(row.inventoryPolicy, row.updatedAt);
   }
