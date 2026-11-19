@@ -9,7 +9,7 @@ import { addedMessage, type LastTime, type SkippedCounts } from './lastTime';
 import { LastTimeCard } from './LastTimeCard';
 import { RecentWines } from './RecentWines';
 import { WineSection } from './WineSection';
-import type { Wine } from './wine';
+import { describeWine, type Wine } from './wine';
 
 type NewOrderDraftProps = {
   customers: Customer[];
@@ -81,11 +81,14 @@ export function NewOrderDraft({
     setAddMessage(addedMessage(added, source, skipped));
   }
 
-  // TEMPORARY: replace with #14's add-a-wine action (and its status message).
   function handleRecentPick(wineId: string) {
-    setLines((current) =>
-      wineId in current ? current : { ...current, [wineId]: '' },
-    );
+    const wine = wines.find(({ id }) => id === wineId);
+    if (!wine) return;
+    if (lines[wineId] === undefined) {
+      addWines([wineId]);
+    } else {
+      setAddMessage(`${describeWine(wine)} is already in the request.`);
+    }
   }
 
   return (
