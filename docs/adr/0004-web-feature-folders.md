@@ -8,6 +8,7 @@ Status: accepted
 ## Decision
 - `src/features/<feature>/` holds a feature's components, pure rules and their tests.
 - `src/components/` holds only shared code used by two or more features or by the app shell (Header, NavLink, PageHeading).
+- Shared non-UI code (types, pure helpers) used by 2+ features lives in `src/lib/`.
 - Generic UI primitives with no business meaning (`Button`, `Banner`, `Dialog`) live in `src/components/ui/` from the start. The rule below applies to business components.
 - Code starts inside its feature and moves to `components/` only when a second feature uses it. We do not share ahead of time.
 - Features do not import from each other.

@@ -2,7 +2,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { customersFixture } from '@/fixtures/customers';
-import { NewOrderCaller } from './NewOrderCaller';
+import { winesFixture } from '@/fixtures/wines';
+import { NewOrderDraft } from './NewOrderDraft';
 
 const replace = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ replace }) }));
@@ -11,11 +12,21 @@ const [bellavista, harbour] = customersFixture;
 
 function renderCaller(customerId = '') {
   const view = render(
-    <NewOrderCaller customers={customersFixture} customerId={customerId} />,
+    <NewOrderDraft
+      customers={customersFixture}
+      customerId={customerId}
+      wines={winesFixture}
+      policy="strict"
+    />,
   );
   const rerenderWith = (id: string) =>
     view.rerender(
-      <NewOrderCaller customers={customersFixture} customerId={id} />,
+      <NewOrderDraft
+        customers={customersFixture}
+        customerId={id}
+        wines={winesFixture}
+        policy="strict"
+      />,
     );
   return { user: userEvent.setup(), rerenderWith };
 }
@@ -23,7 +34,7 @@ function renderCaller(customerId = '') {
 const nameField = () => screen.getByLabelText('Caller name');
 const phoneField = () => screen.getByLabelText('Caller phone');
 
-describe('NewOrderCaller', () => {
+describe('NewOrderDraft', () => {
   beforeEach(() => replace.mockClear());
 
   it('puts the chosen customer in the URL without scrolling', async () => {

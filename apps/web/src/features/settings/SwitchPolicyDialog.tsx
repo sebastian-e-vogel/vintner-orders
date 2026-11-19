@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/Button';
 import { Dialog } from '@/components/ui/Dialog';
-import { findPolicyOption, type InventoryPolicy } from './policyOptions';
+import type { InventoryPolicy } from '@/lib/inventoryPolicy';
+import { findPolicyOption } from './policyOptions';
 
 type SwitchPolicyDialogProps = {
   ref: React.Ref<HTMLDialogElement>;

@@ -25,6 +25,13 @@ describe('Button', () => {
     expect(button).toBeDisabled();
   });
 
+  it('renders a compact small size', () => {
+    render(<Button size="sm">Tiny</Button>);
+    const button = screen.getByRole('button', { name: 'Tiny' });
+    expect(button).toHaveClass('text-xs');
+    expect(button).not.toHaveClass('px-4');
+  });
+
   it('shows a spinner with an accessible label while loading', () => {
     render(
       <Button disabled loadingLabel="Working">

@@ -1,6 +1,8 @@
 import { PageHeading } from '@/components/PageHeading';
-import { NewOrderCaller } from '@/features/order/NewOrderCaller';
+import { NewOrderDraft } from '@/features/order/NewOrderDraft';
 import { customersFixture } from '@/fixtures/customers';
+import { inventoryPolicyFixture } from '@/fixtures/inventoryPolicy';
+import { winesFixture } from '@/fixtures/wines';
 
 type HomeProps = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -19,7 +21,12 @@ export default async function Home({ searchParams }: HomeProps) {
         Take a phone order for an existing customer. It is saved for review, and
         nothing is reserved or confirmed yet.
       </p>
-      <NewOrderCaller customers={customersFixture} customerId={customerId} />
+      <NewOrderDraft
+        customers={customersFixture}
+        customerId={customerId}
+        wines={winesFixture}
+        policy={inventoryPolicyFixture.currentPolicy}
+      />
     </>
   );
 }
