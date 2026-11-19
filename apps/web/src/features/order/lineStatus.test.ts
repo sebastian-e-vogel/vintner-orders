@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { getLineStatus } from './lineStatus';
 
 describe('getLineStatus', () => {
-  it('asks for a quantity when empty, under either policy', () => {
+  it('asks for a quantity, as a needs-input status, when empty under either policy', () => {
     for (const policy of ['strict', 'flexible'] as const) {
       expect(getLineStatus({ quantityText: '', available: 5, policy })).toEqual(
-        { tone: 'quiet', text: 'Enter a quantity' },
+        { tone: 'input', text: 'Enter a quantity' },
       );
     }
   });

@@ -24,3 +24,7 @@ export function formatTime(iso: string): string {
 export function formatDateTime(iso: string): string {
   return `${dateFormat.format(new Date(iso))}, ${formatTime(iso)}`;
 }
+
+export function formatDate(iso: string): string {
+  return dateFormat.format(new Date(iso));
+}

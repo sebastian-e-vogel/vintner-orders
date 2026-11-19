@@ -21,6 +21,18 @@ describe('Home page', () => {
     expect(screen.getByLabelText('Customer')).toHaveValue('cus_harbour');
   });
 
+  it('shows the last-time card only once a customer is selected', async () => {
+    await renderHome({ customer: 'cus_harbour' });
+    expect(
+      screen.getByRole('heading', { name: 'Last time', level: 2 }),
+    ).toBeInTheDocument();
+  });
+
+  it('has no last-time card with nothing selected', async () => {
+    await renderHome({});
+    expect(screen.queryByText('Last time')).not.toBeInTheDocument();
+  });
+
   it.each([
     ['unknown', { customer: 'nope' }],
     ['repeated', { customer: ['cus_harbour', 'cus_oakroom'] }],
