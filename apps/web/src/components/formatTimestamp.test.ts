@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatDateTime, formatTime } from './formatTimestamp';
+import { formatDate, formatDateTime, formatTime } from './formatTimestamp';
 
 describe('formatTimestamp', () => {
   it('formats the time as h:mm AM/PM in the display zone', () => {
@@ -10,6 +10,12 @@ describe('formatTimestamp', () => {
   it('formats weekday, date and time', () => {
     expect(formatDateTime('2026-11-02T14:30:00.000Z')).toBe(
       'Monday, November 2, 2026, 2:30 PM',
+    );
+  });
+
+  it('formats the weekday and date alone', () => {
+    expect(formatDate('2026-11-02T14:30:00.000Z')).toBe(
+      'Monday, November 2, 2026',
     );
   });
 });

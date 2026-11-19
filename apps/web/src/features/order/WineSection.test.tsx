@@ -20,6 +20,8 @@ function Harness({
       wines={wines}
       lines={lines}
       policy={policy}
+      lastTimeQuantities={{}}
+      statusMessage=""
       onQuantityChange={(id, text) => setLines((c) => ({ ...c, [id]: text }))}
     />
   );

@@ -1,7 +1,11 @@
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
-import { describeAvailability, type AvailabilityLevel } from './availability';
+import {
+  describeAvailability,
+  isStrictBlocked,
+  type AvailabilityLevel,
+} from './availability';
 import {
   blockedStatus,
   getLineStatus,
@@ -10,6 +14,7 @@ import {
 import { sanitizeQuantity } from './quantity';
 import {
   describeVintage,
+  describeWine,
   formatBottleSize,
   formatVintage,
   type Wine,
@@ -31,7 +36,7 @@ const availabilityClass: Record<AvailabilityLevel, string> = {
 };
 
 const statusClass: Record<LineStatusTone, string> = {
-  quiet: 'text-muted',
+  input: 'text-foreground',
   ok: 'text-success',
   warning: 'text-warning',
   error: 'text-danger',
@@ -45,7 +50,7 @@ export function WineRow({
   quickFill,
 }: WineRowProps) {
   const isInRequest = quantityText !== undefined;
-  const isBlocked = policy === 'strict' && wine.available === 0 && !isInRequest;
+  const isBlocked = isStrictBlocked(wine.available, policy) && !isInRequest;
   const status = isInRequest
     ? getLineStatus({ quantityText, available: wine.available, policy })
     : isBlocked
@@ -97,7 +102,7 @@ export function WineRow({
       </div>
       <div>
         <label htmlFor={inputId} className="sr-only">
-          {`Quantity for ${wine.producer} ${wine.wineName} ${describeVintage(wine.vintage)}, ${size}`}
+          {`Quantity for ${describeWine(wine)}`}
         </label>
         <Input
           id={inputId}

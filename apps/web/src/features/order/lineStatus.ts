@@ -1,7 +1,7 @@
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 import { maxQuantity, parseQuantity } from './quantity';
 
-export type LineStatusTone = 'quiet' | 'ok' | 'warning' | 'error';
+export type LineStatusTone = 'input' | 'ok' | 'warning' | 'error';
 
 export type LineStatus = {
   tone: LineStatusTone;
@@ -21,7 +21,8 @@ export function getLineStatus({
   available,
   policy,
 }: LineStatusInput): LineStatus {
-  if (quantityText === '') return { tone: 'quiet', text: 'Enter a quantity' };
+  // A line only exists once the rep added or typed it, so an empty one asks for input.
+  if (quantityText === '') return { tone: 'input', text: 'Enter a quantity' };
 
   const quantity = parseQuantity(quantityText);
   if (quantity === null) {

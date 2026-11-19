@@ -16,6 +16,9 @@ type WineSectionProps = {
   wines: Wine[];
   lines: Record<string, string>;
   policy: InventoryPolicy;
+  lastTimeQuantities: Record<string, number>;
+  // Latest add message, announced to screen readers.
+  statusMessage: string;
   onQuantityChange: (wineId: string, quantityText: string) => void;
 };
 
@@ -23,6 +26,8 @@ export function WineSection({
   wines,
   lines,
   policy,
+  lastTimeQuantities,
+  statusMessage,
   onQuantityChange,
 }: WineSectionProps) {
   const [producer, setProducer] = useState(allProducers);
@@ -67,6 +72,9 @@ export function WineSection({
           )}
         </Field>
       </div>
+      <p role="status" className="text-sm">
+        {statusMessage}
+      </p>
       {groups.length === 0 ? (
         <p className="text-muted">No wines to show.</p>
       ) : (
@@ -76,6 +84,7 @@ export function WineSection({
             group={group}
             lines={lines}
             policy={policy}
+            lastTimeQuantities={lastTimeQuantities}
             onQuantityChange={onQuantityChange}
           />
         ))
