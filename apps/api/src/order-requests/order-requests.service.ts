@@ -1,5 +1,5 @@
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import {
   checkStock,
   type OrderRequest as OrderRequestBody,
@@ -9,7 +9,7 @@ import {
   type SavedRequestListItem,
 } from '@vintner/contracts';
 import { createHash } from 'node:crypto';
-import { DataSource, In } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { OrderRequest, OrderRequestItem } from '../database/entities/index.js';
 import { InventoryPolicy } from '../database/entities/order-request.entity.js';
 import { CustomersService } from '../customers/customers.service.js';
@@ -62,6 +62,10 @@ const toResponse = (
 export class OrderRequestsService {
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
+    @InjectRepository(OrderRequest)
+    private readonly orderRequests: Repository<OrderRequest>,
+    @InjectRepository(OrderRequestItem)
+    private readonly orderRequestItems: Repository<OrderRequestItem>,
     private readonly inventoryPolicy: InventoryPolicyService,
     private readonly customers: CustomersService,
     private readonly wines: WinesService,
@@ -146,13 +150,13 @@ export class OrderRequestsService {
   // then their lines with the wine. Reads through the entity relations, so no
   // other module's logic is repeated.
   async list(): Promise<SavedRequestListItem[]> {
-    const requests = await this.dataSource.getRepository(OrderRequest).find({
+    const requests = await this.orderRequests.find({
       relations: { customer: true, salesRep: true },
       order: { createdAt: 'DESC', id: 'ASC' },
     });
     if (requests.length === 0) return [];
 
-    const items = await this.dataSource.getRepository(OrderRequestItem).find({
+    const items = await this.orderRequestItems.find({
       where: { requestId: In(requests.map((request) => request.id)) },
       relations: { wine: true },
       order: { wine: { name: 'ASC', id: 'ASC' } },
@@ -194,6 +198,6 @@ export class OrderRequestsService {
   }
 
   async count(): Promise<SavedRequestCount> {
-    return { count: await this.dataSource.getRepository(OrderRequest).count() };
+    return { count: await this.orderRequests.count() };
   }
 }

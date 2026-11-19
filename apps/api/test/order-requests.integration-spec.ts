@@ -7,7 +7,13 @@ import { randomUUID } from 'node:crypto';
 import { DataSource } from 'typeorm';
 import { createDataSourceOptions } from '../src/database/database.config.js';
 import { CustomersService } from '../src/customers/customers.service.js';
-import { Customer, SalesRep, Wine } from '../src/database/entities/index.js';
+import {
+  Customer,
+  OrderRequest,
+  OrderRequestItem,
+  SalesRep,
+  Wine,
+} from '../src/database/entities/index.js';
 import { SalesRepsService } from '../src/sales-reps/sales-reps.service.js';
 import { WinesService } from '../src/wines/wines.service.js';
 import { OrderRequestsService } from '../src/order-requests/order-requests.service.js';
@@ -37,6 +43,8 @@ describe('order requests service', () => {
     policies = new InventoryPolicyService(dataSource);
     service = new OrderRequestsService(
       dataSource,
+      dataSource.getRepository(OrderRequest),
+      dataSource.getRepository(OrderRequestItem),
       policies,
       new CustomersService(dataSource.getRepository(Customer)),
       new WinesService(dataSource.getRepository(Wine)),
