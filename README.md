@@ -56,6 +56,16 @@ pnpm --filter @vintner/api migration:create --name=AddThing
 
 The API reads the database settings from the root `.env` and exits at startup naming any variable that is missing or invalid. The migration scripts build the API first and run the CLI on `dist/`.
 
+## Development seed
+
+With the database up (`pnpm db:up`) and migrations applied (`pnpm --filter @vintner/api migration:run`):
+
+```
+pnpm db:seed
+```
+
+It empties every app table (not the migrations table) and inserts fixed demo data: 1 sales rep, 18 wines, 4 customers, 6 past orders, inventory policy `strict`, no order requests. Running it again gives the same data. It refuses to run when `NODE_ENV=production`.
+
 ## Integration tests
 
 `pnpm test:integration` runs the API tests against a real PostgreSQL 18 started by Testcontainers. It needs Docker running; no `.env` or local Postgres. `pnpm test` stays Docker-free.

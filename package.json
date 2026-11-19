@@ -18,6 +18,7 @@
     "format:check": "prettier --check .",
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down",
+    "db:seed": "pnpm --filter @vintner/api db:seed",
     "build:contracts": "pnpm --filter @vintner/contracts build",
     "prepare": "pnpm build:contracts",
     "check": "pnpm build:contracts && pnpm lint && pnpm typecheck && pnpm test"
