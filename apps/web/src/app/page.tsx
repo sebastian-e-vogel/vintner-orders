@@ -3,6 +3,7 @@ import { NewOrderDraft } from '@/features/order/NewOrderDraft';
 import { customersFixture } from '@/fixtures/customers';
 import { inventoryPolicyFixture } from '@/fixtures/inventoryPolicy';
 import { lastTimeFixture } from '@/fixtures/lastTime';
+import { recentWinesFixture } from '@/fixtures/recentWines';
 import { winesFixture } from '@/fixtures/wines';
 
 type HomeProps = {
@@ -26,6 +27,7 @@ export default async function Home({ searchParams }: HomeProps) {
         customers={customersFixture}
         customerId={customerId}
         wines={winesFixture}
+        recentWines={recentWinesFixture}
         policy={inventoryPolicyFixture.currentPolicy}
         lastTime={lastTimeFixture[customerId]}
       />

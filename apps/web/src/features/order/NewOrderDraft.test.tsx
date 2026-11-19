@@ -18,6 +18,7 @@ function renderCaller(customerId = '', policy: InventoryPolicy = 'strict') {
       customers={customersFixture}
       customerId={customerId}
       wines={winesFixture}
+      recentWines={[]}
       policy={policy}
       lastTime={lastTimeFixture[customerId]}
     />,
@@ -28,6 +29,7 @@ function renderCaller(customerId = '', policy: InventoryPolicy = 'strict') {
         customers={customersFixture}
         customerId={id}
         wines={winesFixture}
+        recentWines={[]}
         policy={policy}
         lastTime={lastTimeFixture[id]}
       />,
@@ -204,5 +206,50 @@ describe('NewOrderDraft last time', () => {
     expect(
       screen.getAllByRole('button', { name: /^Last time: / }),
     ).toHaveLength(3);
+  });
+});
+
+describe('NewOrderDraft recent wines', () => {
+  const brunello = winesFixture.find(({ id }) => id === 'wine_08')!;
+
+  function renderRecent() {
+    render(
+      <NewOrderDraft
+        customers={customersFixture}
+        customerId=""
+        wines={winesFixture}
+        recentWines={[brunello]}
+        policy="strict"
+      />,
+    );
+    return userEvent.setup();
+  }
+
+  it('adds a picked wine without a quantity and shows the added message', async () => {
+    const user = renderRecent();
+    await user.click(
+      screen.getByRole('button', { name: /^Enter quantity for/ }),
+    );
+    expect(
+      qty(/Quantity for Bellerive Brunello di Montalcino 2020/),
+    ).toHaveValue('');
+    expect(catalogStatus()).toHaveTextContent(
+      'Added Bellerive Brunello di Montalcino 2020, 750 ml. Type the quantity.',
+    );
+  });
+
+  it('reports a wine already in the request and does not move focus', async () => {
+    const user = renderRecent();
+    const input = qty(/Quantity for Bellerive Brunello di Montalcino 2020/);
+    await user.type(input, '7');
+    const chip = screen.getByRole('button', {
+      name: /already in this request$/,
+    });
+    await user.click(chip);
+    expect(input).toHaveValue('7');
+    expect(catalogStatus()).toHaveTextContent(
+      'Bellerive Brunello di Montalcino 2020, 750 ml is already in the request.',
+    );
+    expect(chip).toHaveFocus();
   });
 });
