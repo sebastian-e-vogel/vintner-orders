@@ -3,7 +3,7 @@
 import { startTransition, useActionState, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { CurrentPolicy } from './CurrentPolicy';
-import { formatTime } from './formatTimestamp';
+import { formatTime } from '@/components/formatTimestamp';
 import { PolicyOption } from './PolicyOption';
 import {
   findPolicyOption,
