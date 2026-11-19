@@ -1,7 +1,9 @@
+import { Spinner } from '@/components/ui/Spinner';
+
 export default function Loading() {
   return (
-    <p role="status" className="text-muted">
-      Loading…
-    </p>
+    <div role="status" className="text-muted">
+      <Spinner label="Loading" />
+    </div>
   );
 }
