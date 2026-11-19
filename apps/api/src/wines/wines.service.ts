@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import type { Wine as WineResponse } from '@vintner/contracts';
-import { Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import { Wine } from '../database/entities/index.js';
 
 @Injectable()
@@ -28,5 +28,17 @@ export class WinesService {
         sku: 'ASC',
       },
     });
+  }
+
+  // Wine id to available stock; ids that do not exist are left out.
+  async findAvailability(
+    ids: string[],
+    manager?: EntityManager,
+  ): Promise<Record<string, number>> {
+    const wines = await (manager?.getRepository(Wine) ?? this.wines).find({
+      select: { id: true, available: true },
+      where: { id: In(ids) },
+    });
+    return Object.fromEntries(wines.map((wine) => [wine.id, wine.available]));
   }
 }

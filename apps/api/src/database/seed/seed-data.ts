@@ -1,9 +1,11 @@
+import { CURRENT_SALES_REP_ID } from '../../sales-reps/current-sales-rep.js';
+
 // Fixed ids and dates: every seed run produces exactly this data.
 const id = (kind: string, n: number) =>
   `${kind}000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 
 export const salesRep = {
-  id: id('a1', 1),
+  id: CURRENT_SALES_REP_ID,
   name: 'Marta Lindqvist',
   email: 'marta.lindqvist@vintner.example',
 };
