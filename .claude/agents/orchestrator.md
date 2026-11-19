@@ -40,14 +40,14 @@ The user reviews locally and may ask anything. Answer from the code; if you need
 reasoning, ask it with `SendMessage`. For requested changes, use `SendMessage` to the same agent so it
 keeps its context and worktree.
 
-When the user approves the review, use `SendMessage` to tell the same agent to commit. Never ask for a
-commit before that.
+When the user approves the review, use `SendMessage` to tell the same agent to commit and rebase onto
+`origin/develop`, quoting the user's approval words verbatim. Never ask for a commit before that.
 
 ## 3. Open the PR
 
 Only when the user says so:
 
-1. Push the branch.
+1. Push the branch (the agent already rebased it onto `origin/develop`).
 2. Open the PR against `develop` with `gh pr create --base develop`, with `Closes #<issue>` in the body.
 3. Give the user the link. 
 4. Remove the ticket's worktree with `git worktree remove <path>`, without `--force`. If it refuses, tell the user what is left.

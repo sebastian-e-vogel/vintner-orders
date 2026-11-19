@@ -30,7 +30,21 @@ change, stop and report it.
      `tailwind.config.js`, `@tailwind` or `@layer utilities`. Follow the
      `tailwind-design-system` skill.
    - **Tests:** test shared components once, and keep page tests thin.
-5. Leave all work uncommitted and report back. Commit only when the orchestrator tells you the user approved the review; that relay is the user's approval. Never push and never open a PR.
+5. Leave all work uncommitted and report back. When the orchestrator relays the user's approval (it
+   quotes the user's words), commit and rebase in this exact order. Each step is ONE simple Bash call
+   `cd <worktree> && git ...`: no heredocs, no `$(...)`, no pipes, no `;`, no `git reset`, no
+   `git stash`, and every `-m` value on one line.
+   1. `git add <the ticket's files>` with explicit paths.
+   2. `git commit -m "<type>: <subject>" -m "<one-paragraph body on one line>" -m "Refs #<issue>"`, plus
+      the Co-Authored-By trailer as another `-m` if the session gives one.
+   3. `git fetch origin`
+   4. `git rebase origin/develop`. On conflict, resolve with Edit only if the resolution is obvious and
+      stays inside `apps/web`, then `git add <file>` and `git rebase --continue`. Otherwise
+      `git rebase --abort` and report the conflict.
+   5. Re-run lint, typecheck and tests, and report the results.
+
+   Never push, never open a PR, never force anything. Report the final commit hash and
+   `git log --oneline -3`.
 
 If the ticket is ambiguous or grows beyond its scope, stop and report it instead of deciding.
 
