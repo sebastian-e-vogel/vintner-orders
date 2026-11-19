@@ -102,3 +102,36 @@ describe('RequestPanel', () => {
     ).toHaveAttribute('href', '/settings');
   });
 });
+
+describe('RequestPanel line level', () => {
+  const lineOf = (name: RegExp) =>
+    screen.getByRole('link', { name }).closest('li');
+
+  it('colours each line by its level', () => {
+    setup({ a: '3', b: '' });
+    expect(lineOf(/3 of Aubert/)).toHaveClass(
+      'border-success',
+      'bg-success-soft',
+    );
+    expect(lineOf(/No quantity of/)).toHaveClass(
+      'border-warning',
+      'bg-warning-soft',
+    );
+  });
+
+  it('uses red only for a real error', () => {
+    setup({ a: '11' });
+    expect(lineOf(/11 of Aubert/)).toHaveClass(
+      'border-danger',
+      'bg-danger-soft',
+    );
+  });
+
+  it('marks a flexible shortage as amber', () => {
+    setup({ a: '11' }, 'flexible');
+    expect(lineOf(/11 of Aubert/)).toHaveClass(
+      'border-warning',
+      'bg-warning-soft',
+    );
+  });
+});

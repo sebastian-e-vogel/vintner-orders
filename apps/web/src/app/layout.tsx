@@ -18,7 +18,10 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
           Skip to content
         </a>
         <Header />
-        <main id="main-content" className="mx-auto max-w-content px-8 py-8">
+        <main
+          id="main-content"
+          className="mx-auto max-w-content px-8 py-8 has-[[data-wide]]:max-w-[90rem]"
+        >
           {children}
         </main>
       </body>

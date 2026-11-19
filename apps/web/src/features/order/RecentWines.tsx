@@ -60,7 +60,7 @@ export function RecentWines({
                   disabled={isBlocked}
                   onClick={() => onPick(wine.id)}
                   className={`flex flex-col items-start gap-1 rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-primary-soft disabled:opacity-50 disabled:hover:bg-transparent ${
-                    isInRequest ? 'bg-primary-soft' : ''
+                    isInRequest ? 'bg-success-soft' : ''
                   }`}
                 >
                   <span className="font-medium">{name}</span>

@@ -127,8 +127,8 @@ export function NewOrderDraft({
           onAdd={addWines}
         />
       )}
-      <div className="relative left-1/2 mt-6 grid w-[min(90rem,calc(100vw-4rem))] -translate-x-1/2 items-start gap-6 min-[860px]:grid-cols-[minmax(0,1fr)_22.5rem] min-[1240px]:grid-cols-[15rem_minmax(0,1fr)_22.5rem]">
-        <div className="min-[860px]:col-start-1 min-[860px]:row-start-1 min-[1240px]:sticky min-[1240px]:top-4 min-[1240px]:max-h-[calc(100vh-2rem)] min-[1240px]:overflow-y-auto">
+      <div className="mt-6 grid items-start gap-6 min-[860px]:grid-cols-[minmax(0,1fr)_22.5rem] min-[1240px]:grid-cols-[18rem_minmax(0,1fr)_22.5rem]">
+        <div className="min-[860px]:col-start-1 min-[860px]:row-start-1">
           <RecentWines
             wines={recentWines}
             lines={lines}
@@ -150,7 +150,7 @@ export function NewOrderDraft({
         </div>
         <aside
           aria-label="This request"
-          className="min-[860px]:sticky min-[860px]:top-4 min-[860px]:col-start-2 min-[860px]:row-span-2 min-[860px]:row-start-1 min-[860px]:max-h-[calc(100vh-2rem)] min-[860px]:overflow-y-auto min-[1240px]:col-start-3 min-[1240px]:row-span-1"
+          className="min-[860px]:sticky min-[860px]:top-4 min-[860px]:col-start-2 min-[860px]:row-span-2 min-[860px]:row-start-1 min-[860px]:max-h-[calc(100vh-2rem)] min-[860px]:overflow-y-auto min-[860px]:[scrollbar-width:thin] min-[1240px]:col-start-3 min-[1240px]:row-span-1"
         >
           <RequestPanel
             customerName={chosenCustomer?.companyName}
