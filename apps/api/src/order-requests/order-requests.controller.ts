@@ -1,8 +1,10 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Body, Controller, Get, Post, Res } from '@nestjs/common';
 import {
   orderRequestSchema,
   type OrderRequest,
   type SaveOrderRequestResponse,
+  type SavedRequestCount,
+  type SavedRequestListItem,
 } from '@vintner/contracts';
 import type { Response } from 'express';
 import { IdempotencyKey } from '../common/idempotency-key.decorator.js';
@@ -21,5 +23,15 @@ export class OrderRequestsController {
     const saved = await this.orderRequests.save(key, body);
     if (saved.duplicate) res.status(200);
     return saved;
+  }
+
+  @Get()
+  list(): Promise<SavedRequestListItem[]> {
+    return this.orderRequests.list();
+  }
+
+  @Get('count')
+  count(): Promise<SavedRequestCount> {
+    return this.orderRequests.count();
   }
 }
