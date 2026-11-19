@@ -1,5 +1,5 @@
 // TEMPORARY: replaced by the API in the wiring ticket. Delete with fakeSavePolicy.ts.
-import type { InventoryPolicy } from '@/features/settings/policyOptions';
+import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 
 export const inventoryPolicyFixture: {
   currentPolicy: InventoryPolicy;

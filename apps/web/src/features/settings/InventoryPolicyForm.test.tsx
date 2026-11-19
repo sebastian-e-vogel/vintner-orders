@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { InventoryPolicyForm, type SaveResult } from './InventoryPolicyForm';
-import type { InventoryPolicy } from './policyOptions';
+import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 
 const SINCE = '2026-11-02T14:30:00.000Z';
 const SAVED_AT = '2026-11-18T15:05:00.000Z';

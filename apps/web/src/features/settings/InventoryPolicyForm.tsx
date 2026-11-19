@@ -5,11 +5,8 @@ import { Button } from '@/components/ui/Button';
 import { CurrentPolicy } from './CurrentPolicy';
 import { formatTime } from '@/components/formatTimestamp';
 import { PolicyOption } from './PolicyOption';
-import {
-  findPolicyOption,
-  policyOptions,
-  type InventoryPolicy,
-} from './policyOptions';
+import type { InventoryPolicy } from '@/lib/inventoryPolicy';
+import { findPolicyOption, policyOptions } from './policyOptions';
 import { SaveFeedback } from './SaveFeedback';
 import { SwitchPolicyDialog } from './SwitchPolicyDialog';
 

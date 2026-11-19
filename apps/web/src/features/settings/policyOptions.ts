@@ -1,4 +1,4 @@
-export type InventoryPolicy = 'strict' | 'flexible';
+import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 
 export type PolicyOptionData = {
   value: InventoryPolicy;

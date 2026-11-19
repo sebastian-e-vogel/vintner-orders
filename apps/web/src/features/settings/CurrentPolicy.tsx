@@ -1,6 +1,7 @@
 import { PolicyBadge } from '@/components/PolicyBadge';
 import { formatDateTime } from '@/components/formatTimestamp';
-import { findPolicyOption, type InventoryPolicy } from './policyOptions';
+import type { InventoryPolicy } from '@/lib/inventoryPolicy';
+import { findPolicyOption } from './policyOptions';
 
 type CurrentPolicyProps = {
   policy: InventoryPolicy;
