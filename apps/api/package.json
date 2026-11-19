@@ -24,7 +24,8 @@
     "migration:generate": "nest build && sh -c 'typeorm migration:generate \"src/database/migrations/${1#--name=}\" -d dist/database/data-source.js' --",
     "migration:create": "sh -c 'typeorm migration:create \"src/database/migrations/${1#--name=}\"' --",
     "migration:run": "nest build && typeorm migration:run -d dist/database/data-source.js",
-    "migration:revert": "nest build && typeorm migration:revert -d dist/database/data-source.js"
+    "migration:revert": "nest build && typeorm migration:revert -d dist/database/data-source.js",
+    "db:seed": "nest build && node dist/database/seed/run-seed.js"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
