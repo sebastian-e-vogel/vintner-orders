@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  UnprocessableEntityException,
-} from '@nestjs/common';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import {
   checkStock,
@@ -11,16 +7,12 @@ import {
   type SaveOrderRequestResponse,
 } from '@vintner/contracts';
 import { createHash } from 'node:crypto';
-import { DataSource, In, type EntityManager } from 'typeorm';
-import {
-  Customer,
-  OrderRequest,
-  OrderRequestItem,
-  SalesRep,
-  Wine,
-} from '../database/entities/index.js';
+import { DataSource } from 'typeorm';
+import { OrderRequest, OrderRequestItem } from '../database/entities/index.js';
 import { InventoryPolicy } from '../database/entities/order-request.entity.js';
-import { CURRENT_SALES_REP_ID } from '../sales-reps/current-sales-rep.js';
+import { CustomersService } from '../customers/customers.service.js';
+import { SalesRepsService } from '../sales-reps/sales-reps.service.js';
+import { WinesService } from '../wines/wines.service.js';
 import { InventoryPolicyService } from '../settings/inventory-policy.service.js';
 
 const reject = (body: SaveOrderRequestRejected) =>
@@ -69,6 +61,9 @@ export class OrderRequestsService {
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly inventoryPolicy: InventoryPolicyService,
+    private readonly customers: CustomersService,
+    private readonly wines: WinesService,
+    private readonly salesReps: SalesRepsService,
   ) {}
 
   save(
@@ -105,19 +100,14 @@ export class OrderRequestsService {
       );
 
       const customerId = body.customerId.toLowerCase();
-      if (
-        !(await manager.getRepository(Customer).existsBy({ id: customerId }))
-      ) {
+      if (!(await this.customers.exists(customerId, manager))) {
         throw reject({ reason: 'unknown_customer' });
       }
 
       const wineIds = body.lines.map((line) => line.wineId);
-      const wines = await manager.getRepository(Wine).find({
-        select: { id: true, available: true },
-        where: { id: In(wineIds) },
-      });
-      const availableByWineId = Object.fromEntries(
-        wines.map((wine) => [wine.id, wine.available]),
+      const availableByWineId = await this.wines.findAvailability(
+        wineIds,
+        manager,
       );
       const unknown = wineIds.filter((id) => !(id in availableByWineId));
       if (unknown.length > 0) {
@@ -133,7 +123,7 @@ export class OrderRequestsService {
         idempotencyKey: key,
         requestHash,
         customerId,
-        salesRepId: await this.currentSalesRepId(manager),
+        salesRepId: (await this.salesReps.getCurrent(manager)).id,
         contactName: body.contactName,
         phone: body.phone,
         notes: body.notes,
@@ -148,17 +138,5 @@ export class OrderRequestsService {
       await manager.insert(OrderRequestItem, items);
       return toResponse(request, items, false);
     });
-  }
-
-  private async currentSalesRepId(manager: EntityManager) {
-    const exists = await manager
-      .getRepository(SalesRep)
-      .existsBy({ id: CURRENT_SALES_REP_ID });
-    if (!exists) {
-      throw new InternalServerErrorException(
-        'The current sales rep does not exist. Run the seed.',
-      );
-    }
-    return CURRENT_SALES_REP_ID;
   }
 }

@@ -8,5 +8,6 @@ import { WinesService } from './wines.service.js';
   imports: [TypeOrmModule.forFeature([Wine])],
   controllers: [WinesController],
   providers: [WinesService],
+  exports: [WinesService],
 })
 export class WinesModule {}

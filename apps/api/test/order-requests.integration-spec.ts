@@ -6,6 +6,10 @@ import { orderRequestSchema } from '@vintner/contracts';
 import { randomUUID } from 'node:crypto';
 import { DataSource } from 'typeorm';
 import { createDataSourceOptions } from '../src/database/database.config.js';
+import { CustomersService } from '../src/customers/customers.service.js';
+import { Customer, SalesRep, Wine } from '../src/database/entities/index.js';
+import { SalesRepsService } from '../src/sales-reps/sales-reps.service.js';
+import { WinesService } from '../src/wines/wines.service.js';
 import { OrderRequestsService } from '../src/order-requests/order-requests.service.js';
 import { InventoryPolicyService } from '../src/settings/inventory-policy.service.js';
 import { seedOrderData, validBody } from './order-request-fixtures.js';
@@ -31,7 +35,13 @@ describe('order requests service', () => {
     await dataSource.initialize();
     await dataSource.runMigrations();
     policies = new InventoryPolicyService(dataSource);
-    service = new OrderRequestsService(dataSource, policies);
+    service = new OrderRequestsService(
+      dataSource,
+      policies,
+      new CustomersService(dataSource.getRepository(Customer)),
+      new WinesService(dataSource.getRepository(Wine)),
+      new SalesRepsService(dataSource.getRepository(SalesRep)),
+    );
   });
 
   afterAll(async () => {

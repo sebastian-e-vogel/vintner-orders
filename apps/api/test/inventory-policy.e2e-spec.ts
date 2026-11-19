@@ -53,13 +53,19 @@ describe('Inventory policy (e2e)', () => {
     ['wrong type', { policy: 1 }],
     ['missing policy', {}],
   ])('PUT rejects %s with 400 and keeps the policy', async (_name, body) => {
-    await server().put('/settings/inventory-policy').send(body).expect(400);
+    const res = await server()
+      .put('/settings/inventory-policy')
+      .send(body)
+      .expect(400);
+    expect(res.body.reason).toBe('invalid_request');
+    expect(res.body.fieldErrors).toHaveProperty('policy');
     const get = await server().get('/settings/inventory-policy').expect(200);
     expect(get.body.policy).toBe('strict');
   });
 
   it('PUT rejects an empty body with 400', async () => {
-    await server().put('/settings/inventory-policy').expect(400);
+    const res = await server().put('/settings/inventory-policy').expect(400);
+    expect(res.body.reason).toBe('invalid_request');
   });
 
   it('fails with 500 and a clear message when the row is missing', async () => {
