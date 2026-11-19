@@ -8,7 +8,7 @@ Phone-order desk for a fictional wine distributor. Monorepo: `apps/web` (Next.js
 2. Reply with a short plan and your questions. Do not assume anything the task or the code does not say; ask when something is ambiguous.
 3. Wait for my OK on the plan before implementing.
 4. Implement only what the plan covers. If something extra needs changing, tell me instead of doing it silently.
-5. Never commit, push, open a PR, or install dependencies unless I ask.
+5. Never push, open a PR, or install dependencies unless I ask. The `backend` and `frontend` agents commit and rebase their own ticket branch only when the orchestrator relays my approval, quoting my words.
 6. Propose small conventional commits (`feat:`, `fix:`, `perf:`, `test:`, `docs:`, `chore:`). A `perf:` commit has before/after numbers in its body.
 
 ## Keep it simple
