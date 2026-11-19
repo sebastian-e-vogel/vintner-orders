@@ -76,7 +76,11 @@ describe('Last time and recent wines (e2e)', () => {
     });
 
     it('returns 400 for a malformed customer id', async () => {
-      await server().get('/customers/not-a-uuid/last-time').expect(400);
+      const res = await server()
+        .get('/customers/not-a-uuid/last-time')
+        .expect(400);
+      expect(res.body.reason).toBe('invalid_request');
+      expect(res.body.fieldErrors).toHaveProperty('body');
     });
 
     it('returns the last order in the contract shape', async () => {
@@ -147,7 +151,7 @@ describe('Last time and recent wines (e2e)', () => {
 
       const res = await server().get('/recent-wines').expect(500);
 
-      expect(res.body.message).toMatch(/pnpm db:seed/);
+      expect(res.body.message).toMatch(/Run the seed/);
     });
   });
 });

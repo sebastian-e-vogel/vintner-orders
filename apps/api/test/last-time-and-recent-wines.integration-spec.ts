@@ -17,6 +17,7 @@ import {
 } from '../src/database/entities/index.js';
 import { InventoryPolicy } from '../src/database/entities/order-request.entity.js';
 import { CURRENT_SALES_REP_ID } from '../src/sales-reps/current-sales-rep.js';
+import { SalesRepsService } from '../src/sales-reps/sales-reps.service.js';
 import { RecentWinesService } from '../src/wines/recent-wines.service.js';
 
 const uuid = (n: number) =>
@@ -45,11 +46,11 @@ describe('last time and recent wines queries', () => {
     );
     await dataSource.initialize();
     await dataSource.runMigrations();
-    customers = new CustomersService(
-      dataSource.getRepository(Customer),
+    customers = new CustomersService(dataSource.getRepository(Customer));
+    recent = new RecentWinesService(
+      new SalesRepsService(dataSource.getRepository(SalesRep)),
       dataSource,
     );
-    recent = new RecentWinesService(dataSource.getRepository(SalesRep), dataSource);
   });
 
   afterAll(async () => {
@@ -203,7 +204,7 @@ describe('last time and recent wines queries', () => {
   describe('recent wines', () => {
     it('fails clearly when the current rep is missing', async () => {
       await dataSource.query('TRUNCATE sales_rep CASCADE');
-      await expect(recent.list()).rejects.toThrow(/pnpm db:seed/);
+      await expect(recent.list()).rejects.toThrow(/Run the seed/);
     });
 
     it('returns an empty list without history', async () => {

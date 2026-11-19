@@ -1,9 +1,7 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Injectable } from '@nestjs/common';
 import type { Wine as WineResponse } from '@vintner/contracts';
-import { DataSource, Repository } from 'typeorm';
-import { SalesRep } from '../database/entities/index.js';
-import { CURRENT_SALES_REP_ID } from '../sales-reps/current-sales-rep.js';
+import { DataSource } from 'typeorm';
+import { SalesRepsService } from '../sales-reps/sales-reps.service.js';
 
 // Newest date per wine first (GROUP BY dedups), then the limit, so repeats never shrink the list.
 const recentWinesSql = `
@@ -26,18 +24,12 @@ const recentWinesSql = `
 @Injectable()
 export class RecentWinesService {
   constructor(
-    @InjectRepository(SalesRep) private readonly salesReps: Repository<SalesRep>,
+    private readonly salesReps: SalesRepsService,
     private readonly dataSource: DataSource,
   ) {}
 
   async list(): Promise<WineResponse[]> {
-    if (!(await this.salesReps.existsBy({ id: CURRENT_SALES_REP_ID }))) {
-      throw new InternalServerErrorException(
-        'The current sales rep is missing from the database. Run the seed with `pnpm db:seed`.',
-      );
-    }
-    return this.dataSource.query<WineResponse[]>(recentWinesSql, [
-      CURRENT_SALES_REP_ID,
-    ]);
+    const rep = await this.salesReps.getCurrent();
+    return this.dataSource.query<WineResponse[]>(recentWinesSql, [rep.id]);
   }
 }

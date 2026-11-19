@@ -5,7 +5,7 @@ import type {
   LastTime,
   Wine as WineResponse,
 } from '@vintner/contracts';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { Customer } from '../database/entities/index.js';
 
 type ItemRow = WineResponse & { quantity: number };
@@ -38,7 +38,6 @@ export class CustomersService {
   constructor(
     @InjectRepository(Customer)
     private readonly customers: Repository<Customer>,
-    private readonly dataSource: DataSource,
   ) {}
 
   list(): Promise<CustomerResponse[]> {
@@ -65,7 +64,7 @@ export class CustomersService {
     if (!(await this.exists(customerId))) {
       throw new NotFoundException('Customer not found.');
     }
-    const [newest] = await this.dataSource.query<
+    const [newest] = await this.customers.query<
       {
         kind: 'order' | 'request';
         id: string;
@@ -76,7 +75,7 @@ export class CustomersService {
     >(newestSql, [customerId]);
     if (!newest) return null;
 
-    const rows = await this.dataSource.query<ItemRow[]>(
+    const rows = await this.customers.query<ItemRow[]>(
       newest.kind === 'order' ? orderItemsSql : requestItemsSql,
       [newest.id],
     );
