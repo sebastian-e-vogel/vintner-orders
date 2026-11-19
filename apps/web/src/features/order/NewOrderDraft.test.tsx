@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { customersFixture } from '@/fixtures/customers';
@@ -184,7 +184,9 @@ describe('NewOrderDraft last time', () => {
     expect(
       qty(/Quantity for Bellerive Brunello di Montalcino 2020/),
     ).toHaveValue('12');
-    expect(screen.getByText('Within stock')).toBeVisible();
+    expect(document.getElementById('status-wine_08')).toHaveTextContent(
+      'Within stock',
+    );
   });
 
   it('hides the hint on a strict-blocked row but shows it under flexible', () => {
@@ -251,5 +253,39 @@ describe('NewOrderDraft recent wines', () => {
       'Bellerive Brunello di Montalcino 2020, 750 ml is already in the request.',
     );
     expect(chip).toHaveFocus();
+  });
+});
+
+describe('NewOrderDraft request panel', () => {
+  const panel = () =>
+    screen.getByRole('complementary', { name: 'This request' });
+
+  it('shows an added wine once, and removing it clears the row too', async () => {
+    const { user } = renderCaller(bellavista.id);
+    const add = screen.getByRole('button', { name: /^Add .*Brunello.*2020/ });
+    await user.click(add);
+    expect(
+      within(panel()).getAllByRole('link', { name: /Brunello.*Go to its row/ }),
+    ).toHaveLength(1);
+
+    await user.type(
+      qty(/Quantity for Bellerive Brunello di Montalcino 2020/),
+      '3',
+    );
+    await user.click(
+      within(panel()).getByRole('button', { name: /^Remove .*Brunello/ }),
+    );
+    expect(within(panel()).queryByRole('list')).not.toBeInTheDocument();
+    expect(
+      qty(/Quantity for Bellerive Brunello di Montalcino 2020/),
+    ).toHaveValue('');
+    expect(catalogStatus()).toHaveTextContent(
+      'Removed Bellerive Brunello di Montalcino 2020, 750 ml from the request.',
+    );
+  });
+
+  it('names the chosen customer in the panel', () => {
+    renderCaller(bellavista.id);
+    expect(within(panel()).getByText(bellavista.companyName)).toBeVisible();
   });
 });

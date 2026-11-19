@@ -32,7 +32,7 @@ export function ProducerGroupCard({
       {group.wineNames.map(({ wineName, wines }) => (
         <div key={wineName}>
           <h4 className="px-3 text-sm font-medium text-muted">{wineName}</h4>
-          <ul>
+          <ul className="@container">
             {wines.map((wine) => (
               <WineRow
                 key={wine.id}

@@ -111,10 +111,10 @@ describe('WineSection quantities', () => {
     await user.type(input, '0a3');
     expect(input).toHaveValue('3');
     expect(screen.getByText('Within stock')).toBeVisible();
-    expect(input.closest('li')).toHaveClass('bg-primary-soft');
+    expect(input.closest('li')).toHaveClass('bg-success-soft');
     expect(
       qty(/Holtz Estate Riesling Kabinett 2022/).closest('li'),
-    ).not.toHaveClass('bg-primary-soft');
+    ).not.toHaveClass('bg-success-soft');
   });
 
   it('keeps the line with an empty quantity when cleared', async () => {
@@ -123,7 +123,7 @@ describe('WineSection quantities', () => {
     await user.type(input, '3');
     await user.clear(input);
     expect(screen.getByText('Enter a quantity')).toBeVisible();
-    expect(input.closest('li')).toHaveClass('bg-primary-soft');
+    expect(input.closest('li')).toHaveClass('bg-warning-soft');
   });
 
   it('describes the input by its status', async () => {
@@ -182,5 +182,19 @@ describe('WineSection quantities', () => {
     expect(
       screen.queryByRole('button', { name: /Set to/ }),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe('WineSection row level colour', () => {
+  it('has no tint until the wine is in the request, then follows the level', async () => {
+    const user = setup('strict');
+    const row = () => qty(holtz2023).closest('li');
+    expect(row()).toHaveClass('border-transparent');
+    await user.type(qty(holtz2023), '1');
+    expect(row()).toHaveClass('border-success', 'bg-success-soft');
+    await user.clear(qty(holtz2023));
+    expect(row()).toHaveClass('border-warning', 'bg-warning-soft');
+    await user.type(qty(holtz2023), '999');
+    expect(row()).toHaveClass('border-danger', 'bg-danger-soft');
   });
 });

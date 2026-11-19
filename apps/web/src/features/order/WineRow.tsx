@@ -35,12 +35,23 @@ const availabilityClass: Record<AvailabilityLevel, string> = {
   out: 'text-danger',
 };
 
-const statusClass: Record<LineStatusTone, string> = {
+export const statusClass: Record<LineStatusTone, string> = {
   input: 'text-foreground',
   ok: 'text-success',
   warning: 'text-warning',
   error: 'text-danger',
 };
+
+// Background and left border by line level, shared by the wine row and the request panel.
+export const lineToneClass: Record<LineStatusTone, string> = {
+  input: 'border-warning bg-warning-soft',
+  ok: 'border-success bg-success-soft',
+  warning: 'border-warning bg-warning-soft',
+  error: 'border-danger bg-danger-soft',
+};
+
+// Anchor target for the request panel links.
+export const wineRowId = (wineId: string) => `wine-row-${wineId}`;
 
 export function WineRow({
   wine,
@@ -63,8 +74,11 @@ export function WineRow({
 
   return (
     <li
-      className={`grid items-center gap-x-4 gap-y-1 rounded-md px-3 py-2 md:grid-cols-[3rem_5rem_7rem_9rem_8rem_1fr_6rem_auto] ${
-        isInRequest ? 'bg-primary-soft' : ''
+      id={wineRowId(wine.id)}
+      className={`flex scroll-mt-4 flex-wrap items-center gap-x-3 gap-y-1 rounded-md border-l-4 px-3 py-2 min-[860px]:grid min-[860px]:grid-cols-[2.5rem_4.5rem_minmax(0,1fr)_7rem_5rem] min-[1240px]:grid-cols-[2.5rem_4.5rem_minmax(0,1fr)_9rem_7rem_5rem] ${
+        isInRequest && status
+          ? lineToneClass[status.tone]
+          : 'border-transparent'
       }`}
     >
       <span className="text-sm font-medium">
@@ -77,30 +91,16 @@ export function WineRow({
       <span className="w-fit rounded-full border border-border px-2 py-0.5 text-sm">
         {size}
       </span>
-      <span className="text-sm text-muted">{wine.region}</span>
-      <span className="font-mono text-sm text-muted">{wine.sku}</span>
+      <span className="truncate text-sm text-muted" title={wine.region}>
+        {wine.region}
+      </span>
+      <span className="hidden font-mono text-sm text-muted min-[1240px]:block">
+        {wine.sku}
+      </span>
       <span className={`text-sm ${availabilityClass[availability.level]}`}>
         {availability.text}
       </span>
-      <div className="flex flex-wrap items-center gap-2 text-sm">
-        <span
-          id={statusId}
-          className={status ? statusClass[status.tone] : undefined}
-        >
-          {status?.text}
-        </span>
-        {status?.setTo !== undefined && (
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => onQuantityChange(wine.id, String(status.setTo))}
-          >
-            Set to {status.setTo}
-          </Button>
-        )}
-      </div>
-      <div>
+      <div className="w-24 min-[860px]:w-auto">
         <label htmlFor={inputId} className="sr-only">
           {`Quantity for ${describeWine(wine)}`}
         </label>
@@ -119,7 +119,27 @@ export function WineRow({
           }
         />
       </div>
-      <div>{quickFill}</div>
+      {(status || quickFill) && (
+        <div className="flex w-full flex-wrap items-center gap-2 text-sm min-[860px]:col-span-full">
+          <span
+            id={statusId}
+            className={status ? statusClass[status.tone] : undefined}
+          >
+            {status?.text}
+          </span>
+          {status?.setTo !== undefined && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => onQuantityChange(wine.id, String(status.setTo))}
+            >
+              Set to {status.setTo}
+            </Button>
+          )}
+          {quickFill}
+        </div>
+      )}
     </li>
   );
 }

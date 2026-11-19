@@ -8,6 +8,8 @@ import type { Customer } from './customer';
 import { addedMessage, type LastTime, type SkippedCounts } from './lastTime';
 import { LastTimeCard } from './LastTimeCard';
 import { RecentWines } from './RecentWines';
+import { RequestPanel } from './RequestPanel';
+import { buildRequestLines } from './requestLines';
 import { WineSection } from './WineSection';
 import { describeWine, type Wine } from './wine';
 
@@ -45,6 +47,8 @@ export function NewOrderDraft({
     (lastTime?.items ?? []).map(({ wine, quantity }) => [wine.id, quantity]),
   );
 
+  const requestLines = buildRequestLines(wines, lines, policy);
+
   function handleCustomerChange(nextId: string) {
     const previous = customers.find(({ id }) => id === chosenId);
     if (previous?.contactName === name && previous.phone === phone) {
@@ -81,6 +85,16 @@ export function NewOrderDraft({
     setAddMessage(addedMessage(added, source, skipped));
   }
 
+  function handleRemove(wineId: string) {
+    const wine = wines.find(({ id }) => id === wineId);
+    setLines((current) =>
+      Object.fromEntries(
+        Object.entries(current).filter(([id]) => id !== wineId),
+      ),
+    );
+    if (wine) setAddMessage(`Removed ${describeWine(wine)} from the request.`);
+  }
+
   function handleRecentPick(wineId: string) {
     const wine = wines.find(({ id }) => id === wineId);
     if (!wine) return;
@@ -113,22 +127,39 @@ export function NewOrderDraft({
           onAdd={addWines}
         />
       )}
-      <RecentWines
-        wines={recentWines}
-        lines={lines}
-        policy={policy}
-        onPick={handleRecentPick}
-      />
-      <WineSection
-        wines={wines}
-        lines={lines}
-        policy={policy}
-        lastTimeQuantities={lastTimeQuantities}
-        statusMessage={addMessage}
-        onQuantityChange={(wineId, text) =>
-          setLines((current) => ({ ...current, [wineId]: text }))
-        }
-      />
+      <div className="mt-6 grid items-start gap-6 min-[860px]:grid-cols-[minmax(0,1fr)_22.5rem] min-[1240px]:grid-cols-[18rem_minmax(0,1fr)_22.5rem]">
+        <div className="min-[860px]:col-start-1 min-[860px]:row-start-1">
+          <RecentWines
+            wines={recentWines}
+            lines={lines}
+            policy={policy}
+            onPick={handleRecentPick}
+          />
+        </div>
+        <div className="min-w-0 min-[860px]:col-start-1 min-[860px]:row-start-2 min-[1240px]:col-start-2 min-[1240px]:row-start-1">
+          <WineSection
+            wines={wines}
+            lines={lines}
+            policy={policy}
+            lastTimeQuantities={lastTimeQuantities}
+            statusMessage={addMessage}
+            onQuantityChange={(wineId, text) =>
+              setLines((current) => ({ ...current, [wineId]: text }))
+            }
+          />
+        </div>
+        <aside
+          aria-label="This request"
+          className="min-[860px]:sticky min-[860px]:top-4 min-[860px]:col-start-2 min-[860px]:row-span-2 min-[860px]:row-start-1 min-[860px]:max-h-[calc(100vh-2rem)] min-[860px]:overflow-y-auto min-[860px]:[scrollbar-width:thin] min-[1240px]:col-start-3 min-[1240px]:row-span-1"
+        >
+          <RequestPanel
+            customerName={chosenCustomer?.companyName}
+            lines={requestLines}
+            policy={policy}
+            onRemove={handleRemove}
+          />
+        </aside>
+      </div>
     </>
   );
 }

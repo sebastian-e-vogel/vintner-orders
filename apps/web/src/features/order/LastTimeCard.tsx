@@ -81,7 +81,7 @@ export function LastTimeCard(props: LastTimeCardProps) {
   return (
     <section
       aria-labelledby="last-time-heading"
-      className="mt-6 flex max-w-[60rem] flex-col gap-4 rounded-md border border-border bg-surface p-6"
+      className="mt-6 flex flex-col gap-4 rounded-md border border-border bg-surface p-6"
     >
       <h2 id="last-time-heading" className="text-lg font-medium">
         Last time
