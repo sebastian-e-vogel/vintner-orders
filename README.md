@@ -72,6 +72,10 @@ It empties every app table (not the migrations table) and inserts fixed demo dat
 
 `pnpm test:e2e` boots the full `AppModule` against a PostgreSQL 18 container (migrations applied) started by Testcontainers. It also needs Docker running; no `.env` or local Postgres.
 
+## API docs
+
+With the API running (`pnpm dev:api`), Swagger UI is at http://localhost:3001/docs and the raw OpenAPI document at http://localhost:3001/docs/openapi.json. They are generated from the Zod schemas in `packages/contracts`; see [ADR 0005](docs/adr/0005-openapi-from-zod-contracts.md). A new endpoint adds a `*.docs.ts` file next to its controller and lists it in `apps/api/src/docs/routes.ts`; the docs e2e test fails until it does. No auth yet, and the docs are served in every environment.
+
 ## Status
 
 Scaffolding in progress. Setup instructions will land here with the first runnable commit. The plan is in [`ROADMAP.md`](ROADMAP.md).
