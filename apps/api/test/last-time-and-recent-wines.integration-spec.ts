@@ -49,7 +49,7 @@ describe('last time and recent wines queries', () => {
     customers = new CustomersService(dataSource.getRepository(Customer));
     recent = new RecentWinesService(
       new SalesRepsService(dataSource.getRepository(SalesRep)),
-      dataSource,
+      dataSource.getRepository(Wine),
     );
   });
 

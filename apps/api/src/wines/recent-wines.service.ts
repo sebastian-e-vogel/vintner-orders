@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import type { Wine as WineResponse } from '@vintner/contracts';
-import { DataSource } from 'typeorm';
+import { Repository } from 'typeorm';
+import { Wine } from '../database/entities/index.js';
 import { SalesRepsService } from '../sales-reps/sales-reps.service.js';
 
 // Newest date per wine first (GROUP BY dedups), then the limit, so repeats never shrink the list.
@@ -25,11 +27,11 @@ const recentWinesSql = `
 export class RecentWinesService {
   constructor(
     private readonly salesReps: SalesRepsService,
-    private readonly dataSource: DataSource,
+    @InjectRepository(Wine) private readonly wines: Repository<Wine>,
   ) {}
 
   async list(): Promise<WineResponse[]> {
     const rep = await this.salesReps.getCurrent();
-    return this.dataSource.query<WineResponse[]>(recentWinesSql, [rep.id]);
+    return this.wines.query<WineResponse[]>(recentWinesSql, [rep.id]);
   }
 }
