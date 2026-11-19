@@ -2,9 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { customersFixture } from '@/fixtures/customers';
-import { orderHistoryFixture } from '@/fixtures/orderHistory';
-import { pendingRequestsFixture } from '@/fixtures/pendingRequests';
-import { repsFixture } from '@/fixtures/reps';
+import { lastTimeFixture } from '@/fixtures/lastTime';
 import { winesFixture } from '@/fixtures/wines';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 import { NewOrderDraft } from './NewOrderDraft';
@@ -12,11 +10,6 @@ import { NewOrderDraft } from './NewOrderDraft';
 const replace = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ replace }) }));
 
-const history = {
-  orders: orderHistoryFixture,
-  requests: pendingRequestsFixture,
-  reps: repsFixture,
-};
 const [bellavista, harbour, lindqvist] = customersFixture;
 
 function renderCaller(customerId = '', policy: InventoryPolicy = 'strict') {
@@ -26,7 +19,7 @@ function renderCaller(customerId = '', policy: InventoryPolicy = 'strict') {
       customerId={customerId}
       wines={winesFixture}
       policy={policy}
-      history={history}
+      lastTime={lastTimeFixture[customerId]}
     />,
   );
   const rerenderWith = (id: string) =>
@@ -36,7 +29,7 @@ function renderCaller(customerId = '', policy: InventoryPolicy = 'strict') {
         customerId={id}
         wines={winesFixture}
         policy={policy}
-        history={history}
+        lastTime={lastTimeFixture[id]}
       />,
     );
   return { user: userEvent.setup(), rerenderWith };

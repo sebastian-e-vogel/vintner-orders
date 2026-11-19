@@ -6,13 +6,10 @@ import {
   describeWine,
   formatBottleSize,
   formatVintage,
-  type Wine,
 } from './wine';
 
 type LastTimeItemRowProps = {
   item: LastTimeItem;
-  // undefined when the wine is no longer in the catalog.
-  wine: Wine | undefined;
   state: ItemState;
   policy: InventoryPolicy;
   onAdd: (wineId: string) => void;
@@ -20,41 +17,33 @@ type LastTimeItemRowProps = {
 
 export function LastTimeItemRow({
   item,
-  wine,
   state,
   policy,
   onAdd,
 }: LastTimeItemRowProps) {
-  const isOutOfStock = wine !== undefined && wine.available === 0;
+  const { wine, quantity } = item;
+  const isOutOfStock = wine.available === 0;
 
   return (
     <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 py-2">
       <div className="flex flex-col gap-0.5">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium">{item.quantity} ×</span>
-          {wine ? (
-            <>
-              <span>
-                {wine.producer} {wine.wineName}{' '}
-                {wine.vintage === null ? (
-                  <abbr title={describeVintage(null)}>
-                    {formatVintage(null)}
-                  </abbr>
-                ) : (
-                  formatVintage(wine.vintage)
-                )}
-              </span>
-              <span className="rounded-full border border-border px-2 py-0.5 text-sm">
-                {formatBottleSize(wine.sizeMl)}
-              </span>
-            </>
-          ) : (
-            <span className="text-muted">Wine no longer in the catalog</span>
-          )}
+          <span className="text-sm font-medium">{quantity} ×</span>
+          <span>
+            {wine.producer} {wine.wineName}{' '}
+            {wine.vintage === null ? (
+              <abbr title={describeVintage(null)}>{formatVintage(null)}</abbr>
+            ) : (
+              formatVintage(wine.vintage)
+            )}
+          </span>
+          <span className="rounded-full border border-border px-2 py-0.5 text-sm">
+            {formatBottleSize(wine.sizeMl)}
+          </span>
         </div>
-        {state === 'missing' && (
+        {state === 'discontinued' && (
           <p className="text-sm text-muted">
-            This wine is not in the catalog any more, so it cannot be added.
+            This wine has been discontinued, so it cannot be added.
           </p>
         )}
         {isOutOfStock && state === 'blocked' && (
@@ -73,7 +62,7 @@ export function LastTimeItemRow({
           In request
         </span>
       ) : (
-        wine && (
+        state !== 'discontinued' && (
           <Button
             type="button"
             variant="secondary"
@@ -83,7 +72,7 @@ export function LastTimeItemRow({
           >
             Add{' '}
             <span className="sr-only">
-              {describeWine(wine)} without a quantity, last time {item.quantity}
+              {describeWine(wine)} without a quantity, last time {quantity}
             </span>
           </Button>
         )

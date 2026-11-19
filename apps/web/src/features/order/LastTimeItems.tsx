@@ -8,11 +8,9 @@ import {
   type SkippedCounts,
 } from './lastTime';
 import { LastTimeItemRow } from './LastTimeItemRow';
-import type { Wine } from './wine';
 
 type LastTimeItemsProps = {
   items: LastTimeItem[];
-  wines: Wine[];
   lines: Record<string, string>;
   policy: InventoryPolicy;
   onAdd: (wineIds: string[], source?: string, skipped?: SkippedCounts) => void;
@@ -20,29 +18,24 @@ type LastTimeItemsProps = {
 
 export function LastTimeItems({
   items,
-  wines,
   lines,
   policy,
   onAdd,
 }: LastTimeItemsProps) {
-  const summary = summarizeAddAll(items, wines, lines, policy);
+  const summary = summarizeAddAll(items, lines, policy);
 
   return (
     <>
       <ul aria-label="Wines last time" className="divide-y divide-border">
-        {items.map((item) => {
-          const wine = wines.find(({ id }) => id === item.wineId);
-          return (
-            <LastTimeItemRow
-              key={item.wineId}
-              item={item}
-              wine={wine}
-              state={itemState(wine, lines, policy)}
-              policy={policy}
-              onAdd={(wineId) => onAdd([wineId])}
-            />
-          );
-        })}
+        {items.map((item) => (
+          <LastTimeItemRow
+            key={item.wine.id}
+            item={item}
+            state={itemState(item, lines, policy)}
+            policy={policy}
+            onAdd={(wineId) => onAdd([wineId])}
+          />
+        ))}
       </ul>
       <div className="flex flex-col items-start gap-2">
         <Button

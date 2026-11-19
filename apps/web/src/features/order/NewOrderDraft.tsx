@@ -5,12 +5,7 @@ import { useOptimistic, useState, useTransition } from 'react';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 import { CallerSection } from './CallerSection';
 import type { Customer } from './customer';
-import {
-  addedMessage,
-  latestForCustomer,
-  type LastTimeHistory,
-  type SkippedCounts,
-} from './lastTime';
+import { addedMessage, type LastTime, type SkippedCounts } from './lastTime';
 import { LastTimeCard } from './LastTimeCard';
 import { WineSection } from './WineSection';
 import type { Wine } from './wine';
@@ -20,7 +15,8 @@ type NewOrderDraftProps = {
   customerId: string;
   wines: Wine[];
   policy: InventoryPolicy;
-  history: LastTimeHistory;
+  // undefined means the customer has no orders or pending requests.
+  lastTime?: LastTime;
 };
 
 // Temporarily owns the whole draft: the caller and the request lines (wine id -> quantity text).
@@ -30,7 +26,7 @@ export function NewOrderDraft({
   customerId,
   wines,
   policy,
-  history,
+  lastTime,
 }: NewOrderDraftProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -42,15 +38,8 @@ export function NewOrderDraft({
   const [addMessage, setAddMessage] = useState('');
 
   const chosenCustomer = customers.find(({ id }) => id === chosenId);
-  const last = latestForCustomer(customerId, history.orders, history.requests);
-  const lastItems =
-    last === undefined
-      ? []
-      : last.kind === 'order'
-        ? last.order.items
-        : last.request.items;
   const lastTimeQuantities = Object.fromEntries(
-    lastItems.map(({ wineId, quantity }) => [wineId, quantity]),
+    (lastTime?.items ?? []).map(({ wine, quantity }) => [wine.id, quantity]),
   );
 
   function handleCustomerChange(nextId: string) {
@@ -105,9 +94,7 @@ export function NewOrderDraft({
         <LastTimeCard
           customerName={chosenCustomer.companyName}
           isLoading={isPending}
-          last={last}
-          reps={history.reps}
-          wines={wines}
+          last={lastTime}
           lines={lines}
           policy={policy}
           onAdd={addWines}
