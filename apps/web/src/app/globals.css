@@ -17,6 +17,8 @@
   --color-strict-soft: oklch(95% 0.03 255);
   --color-flexible: oklch(45% 0.11 75);
   --color-flexible-soft: oklch(95% 0.06 85);
+  --color-warning: oklch(48% 0.12 70);
+  --color-warning-soft: oklch(96% 0.05 85);
   --color-ring: oklch(55% 0.18 255);
 
   --spacing-content: 64rem;
