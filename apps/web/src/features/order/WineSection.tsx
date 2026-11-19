@@ -36,7 +36,7 @@ export function WineSection({
   return (
     <section
       aria-labelledby="wines-heading"
-      className="mt-6 flex max-w-[60rem] flex-col gap-5 rounded-md border border-border bg-surface p-6"
+      className="flex flex-col gap-5 rounded-md border border-border bg-surface p-6"
     >
       <h2
         id="wines-heading"

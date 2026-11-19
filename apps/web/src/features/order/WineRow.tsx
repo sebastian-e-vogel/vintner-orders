@@ -35,12 +35,15 @@ const availabilityClass: Record<AvailabilityLevel, string> = {
   out: 'text-danger',
 };
 
-const statusClass: Record<LineStatusTone, string> = {
+export const statusClass: Record<LineStatusTone, string> = {
   input: 'text-foreground',
   ok: 'text-success',
   warning: 'text-warning',
   error: 'text-danger',
 };
+
+// Anchor target for the request panel links.
+export const wineRowId = (wineId: string) => `wine-row-${wineId}`;
 
 export function WineRow({
   wine,
@@ -63,7 +66,8 @@ export function WineRow({
 
   return (
     <li
-      className={`grid items-center gap-x-4 gap-y-1 rounded-md px-3 py-2 md:grid-cols-[3rem_5rem_7rem_9rem_8rem_1fr_6rem_auto] ${
+      id={wineRowId(wine.id)}
+      className={`flex scroll-mt-4 flex-wrap items-center gap-x-4 gap-y-1 rounded-md px-3 py-2 @3xl:grid @3xl:grid-cols-[3rem_5rem_7rem_9rem_8rem_1fr_6rem_auto] ${
         isInRequest ? 'bg-primary-soft' : ''
       }`}
     >
@@ -82,7 +86,7 @@ export function WineRow({
       <span className={`text-sm ${availabilityClass[availability.level]}`}>
         {availability.text}
       </span>
-      <div className="flex flex-wrap items-center gap-2 text-sm">
+      <div className="flex min-w-40 flex-1 flex-wrap items-center gap-2 text-sm @3xl:min-w-0">
         <span
           id={statusId}
           className={status ? statusClass[status.tone] : undefined}
@@ -100,7 +104,7 @@ export function WineRow({
           </Button>
         )}
       </div>
-      <div>
+      <div className="w-24 @3xl:w-auto">
         <label htmlFor={inputId} className="sr-only">
           {`Quantity for ${describeWine(wine)}`}
         </label>
