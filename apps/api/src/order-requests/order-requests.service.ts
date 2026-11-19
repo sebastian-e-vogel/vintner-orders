@@ -1,13 +1,15 @@
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import {
   checkStock,
   type OrderRequest as OrderRequestBody,
   type SaveOrderRequestRejected,
   type SaveOrderRequestResponse,
+  type SavedRequestCount,
+  type SavedRequestListItem,
 } from '@vintner/contracts';
 import { createHash } from 'node:crypto';
-import { DataSource } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { OrderRequest, OrderRequestItem } from '../database/entities/index.js';
 import { InventoryPolicy } from '../database/entities/order-request.entity.js';
 import { CustomersService } from '../customers/customers.service.js';
@@ -60,6 +62,10 @@ const toResponse = (
 export class OrderRequestsService {
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
+    @InjectRepository(OrderRequest)
+    private readonly orderRequests: Repository<OrderRequest>,
+    @InjectRepository(OrderRequestItem)
+    private readonly orderRequestItems: Repository<OrderRequestItem>,
     private readonly inventoryPolicy: InventoryPolicyService,
     private readonly customers: CustomersService,
     private readonly wines: WinesService,
@@ -138,5 +144,60 @@ export class OrderRequestsService {
       await manager.insert(OrderRequestItem, items);
       return toResponse(request, items, false);
     });
+  }
+
+  // Two queries however many requests: requests with customer and sales rep,
+  // then their lines with the wine. Reads through the entity relations, so no
+  // other module's logic is repeated.
+  async list(): Promise<SavedRequestListItem[]> {
+    const requests = await this.orderRequests.find({
+      relations: { customer: true, salesRep: true },
+      order: { createdAt: 'DESC', id: 'ASC' },
+    });
+    if (requests.length === 0) return [];
+
+    const items = await this.orderRequestItems.find({
+      where: { requestId: In(requests.map((request) => request.id)) },
+      relations: { wine: true },
+      order: { wine: { name: 'ASC', id: 'ASC' } },
+    });
+    const itemsByRequest = new Map<string, OrderRequestItem[]>();
+    for (const item of items) {
+      itemsByRequest.set(item.requestId, [
+        ...(itemsByRequest.get(item.requestId) ?? []),
+        item,
+      ]);
+    }
+
+    return requests.map((request) => ({
+      id: request.id,
+      createdAt: request.createdAt.toISOString(),
+      policy: request.inventoryPolicy,
+      contactName: request.contactName,
+      phone: request.phone,
+      notes: request.notes,
+      salesRepName: request.salesRep.name,
+      customer: {
+        name: request.customer.name,
+        contactName: request.customer.contactName,
+      },
+      lines: (itemsByRequest.get(request.id) ?? []).map((item) => ({
+        wine: {
+          id: item.wine.id,
+          name: item.wine.name,
+          producer: item.wine.producer,
+          vintage: item.wine.vintage,
+          format: item.wine.format,
+          sku: item.wine.sku,
+        },
+        quantity: item.quantity,
+        availableAtSave: item.availableAtSave,
+        shortBy: Math.max(0, item.quantity - item.availableAtSave),
+      })),
+    }));
+  }
+
+  async count(): Promise<SavedRequestCount> {
+    return { count: await this.orderRequests.count() };
   }
 }

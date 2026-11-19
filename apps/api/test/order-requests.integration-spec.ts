@@ -7,7 +7,13 @@ import { randomUUID } from 'node:crypto';
 import { DataSource } from 'typeorm';
 import { createDataSourceOptions } from '../src/database/database.config.js';
 import { CustomersService } from '../src/customers/customers.service.js';
-import { Customer, SalesRep, Wine } from '../src/database/entities/index.js';
+import {
+  Customer,
+  OrderRequest,
+  OrderRequestItem,
+  SalesRep,
+  Wine,
+} from '../src/database/entities/index.js';
 import { SalesRepsService } from '../src/sales-reps/sales-reps.service.js';
 import { WinesService } from '../src/wines/wines.service.js';
 import { OrderRequestsService } from '../src/order-requests/order-requests.service.js';
@@ -37,6 +43,8 @@ describe('order requests service', () => {
     policies = new InventoryPolicyService(dataSource);
     service = new OrderRequestsService(
       dataSource,
+      dataSource.getRepository(OrderRequest),
+      dataSource.getRepository(OrderRequestItem),
       policies,
       new CustomersService(dataSource.getRepository(Customer)),
       new WinesService(dataSource.getRepository(Wine)),
@@ -105,5 +113,23 @@ describe('order requests service', () => {
     });
     await vi.waitFor(() => expect(changed).toBe(true));
     expect((await policies.get()).policy).toBe('flexible');
+  });
+
+  it('lists and counts saved requests, newest first, each with its lines', async () => {
+    expect(await service.list()).toEqual([]);
+    expect(await service.count()).toEqual({ count: 0 });
+
+    const lines = [
+      { wineId: data.plenty.id, quantity: 2 },
+      { wineId: data.few.id, quantity: 1 },
+    ];
+    const saved = [];
+    for (let i = 0; i < 5; i++)
+      saved.push(await service.save(randomUUID(), parse(lines)));
+
+    const list = await service.list();
+    expect(list.map((r) => r.id)).toEqual(saved.map((r) => r.id).reverse());
+    expect(list.every((r) => r.lines.length === 2)).toBe(true);
+    expect(await service.count()).toEqual({ count: 5 });
   });
 });
