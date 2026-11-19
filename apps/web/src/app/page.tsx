@@ -1,10 +1,9 @@
 import { PageHeading } from '@/components/PageHeading';
 import { NewOrderDraft } from '@/features/order/NewOrderDraft';
-import { pickRecentWines } from '@/features/order/pickRecentWines';
 import { customersFixture } from '@/fixtures/customers';
 import { inventoryPolicyFixture } from '@/fixtures/inventoryPolicy';
 import { lastTimeFixture } from '@/fixtures/lastTime';
-import { currentRepId, repActivityFixture } from '@/fixtures/repActivity';
+import { recentWinesFixture } from '@/fixtures/recentWines';
 import { winesFixture } from '@/fixtures/wines';
 
 type HomeProps = {
@@ -28,11 +27,7 @@ export default async function Home({ searchParams }: HomeProps) {
         customers={customersFixture}
         customerId={customerId}
         wines={winesFixture}
-        recentWines={pickRecentWines(
-          repActivityFixture,
-          currentRepId,
-          winesFixture,
-        )}
+        recentWines={recentWinesFixture}
         policy={inventoryPolicyFixture.currentPolicy}
         lastTime={lastTimeFixture[customerId]}
       />
