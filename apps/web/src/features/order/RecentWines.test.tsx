@@ -70,7 +70,7 @@ describe('RecentWines', () => {
       screen.getByRole('button', {
         name: /Out of stock, can't add under strict policy$/,
       }),
-    ).toBeDisabled();
+    ).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('shows the quantity when the wine is in the request', () => {
@@ -103,11 +103,11 @@ describe('RecentWines', () => {
     expect(onPick).toHaveBeenNthCalledWith(2, outOfStock.id);
   });
 
-  it('does not call onPick for a blocked chip', async () => {
+  it('still calls onPick for a blocked chip so the page can explain why', async () => {
     const { onPick, user } = renderCard();
     await user.click(
       screen.getByRole('button', { name: /can't add under strict policy$/ }),
     );
-    expect(onPick).not.toHaveBeenCalled();
+    expect(onPick).toHaveBeenCalledWith(outOfStock.id);
   });
 });

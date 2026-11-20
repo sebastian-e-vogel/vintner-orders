@@ -1,5 +1,6 @@
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 import { isStrictBlocked } from './availability';
+import type { GoTo } from './goTo';
 import type { ProducerGroup } from './groupByProducer';
 import { LastTimeHint } from './LastTimeHint';
 import { WineRow } from './WineRow';
@@ -10,6 +11,7 @@ type ProducerGroupCardProps = {
   policy: InventoryPolicy;
   // Wine id -> quantity from the customer's last order or request.
   lastTimeQuantities: Record<string, number>;
+  goTo?: GoTo;
   onQuantityChange: (wineId: string, quantityText: string) => void;
 };
 
@@ -18,6 +20,7 @@ export function ProducerGroupCard({
   lines,
   policy,
   lastTimeQuantities,
+  goTo,
   onQuantityChange,
 }: ProducerGroupCardProps) {
   const headingId = `producer-${group.producer.replace(/\W/g, '-')}`;
@@ -40,6 +43,7 @@ export function ProducerGroupCard({
                 quantityText={lines[wine.id]}
                 policy={policy}
                 onQuantityChange={onQuantityChange}
+                goTo={goTo}
                 quickFill={
                   lastTimeQuantities[wine.id] !== undefined &&
                   !(

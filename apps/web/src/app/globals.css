@@ -21,10 +21,44 @@
   --color-warning-soft: oklch(96% 0.05 85);
   --color-ring: oklch(55% 0.18 255);
 
+  --color-highlight: oklch(88% 0.1 85);
+
   --spacing-content: 64rem;
+
+  /* Identical twins: switching between them restarts the animation. */
+  --animate-row-highlight-a: row-highlight-a 1s ease-out;
+  --animate-row-highlight-b: row-highlight-b 1s ease-out;
+
+  @keyframes row-highlight-a {
+    from {
+      background-color: var(--color-highlight);
+    }
+  }
+
+  @keyframes row-highlight-b {
+    from {
+      background-color: var(--color-highlight);
+    }
+  }
 }
 
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
+}
+
+@layer base {
+  button:not(:disabled):not([aria-disabled='true']),
+  [role='button']:not([aria-disabled='true']),
+  select:not(:disabled),
+  summary,
+  label:has(input[type='checkbox']),
+  label:has(input[type='radio']) {
+    cursor: pointer;
+  }
+
+  :disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed;
+  }
 }

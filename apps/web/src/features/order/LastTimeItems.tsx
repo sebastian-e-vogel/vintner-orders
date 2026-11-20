@@ -14,6 +14,7 @@ type LastTimeItemsProps = {
   lines: Record<string, string>;
   policy: InventoryPolicy;
   onAdd: (wineIds: string[], source?: string, skipped?: SkippedCounts) => void;
+  onGoTo: (wineId: string) => void;
 };
 
 export function LastTimeItems({
@@ -21,12 +22,16 @@ export function LastTimeItems({
   lines,
   policy,
   onAdd,
+  onGoTo,
 }: LastTimeItemsProps) {
   const summary = summarizeAddAll(items, lines, policy);
 
   return (
     <>
-      <ul aria-label="Wines last time" className="divide-y divide-border">
+      <ul
+        aria-label="Wines last time"
+        className="grid grid-cols-[repeat(auto-fill,minmax(15rem,1fr))] gap-3"
+      >
         {items.map((item) => (
           <LastTimeItemRow
             key={item.wine.id}
@@ -34,6 +39,7 @@ export function LastTimeItems({
             state={itemState(item, lines, policy)}
             policy={policy}
             onAdd={(wineId) => onAdd([wineId])}
+            onGoTo={onGoTo}
           />
         ))}
       </ul>
