@@ -1,23 +1,25 @@
-# 0005. OpenAPI docs generated from the Zod contracts
+# 0005. DTOs and OpenAPI docs from the Zod contracts
 
 Status: accepted
 
 ## Context
-Every endpoint should be documented and browsable, without describing request and response shapes a second time. The shapes already live as Zod 4 schemas in `packages/contracts`.
+Every endpoint should be documented and browsable without describing request and response shapes a second time. The shapes already live as Zod 4 schemas in `packages/contracts`. NestJS 12 and `@nestjs/swagger` 12 read Standard Schema (Zod) schemas natively.
 
 ## Decision
-- Schemas become JSON Schema with Zod's native `z.toJSONSchema` (`target: 'openapi-3.0'`; `io: 'input'` for requests, `'output'` for responses).
-- Each module has a `*.docs.ts` file next to its controller. It lists method, path, summary, the request body and headers, and the response schema per status code, importing the schemas from `@vintner/contracts`. `apps/api/src/docs/routes.ts` collects them, and `buildOpenApiDocument` turns them into one OpenAPI 3.0 document.
-- `@nestjs/swagger` is used only for `SwaggerModule.setup`, which serves Swagger UI at `/docs` and the document at `/docs/openapi.json`. We hand it our own document; no `@nestjs/swagger` decorators or DTO classes are used.
-- A docs e2e test enumerates the controllers' registered routes and fails when a route is missing from the spec (or the spec lists a route that does not exist). `@apidevtools/swagger-parser` checks the document is valid.
-- The 400 body (`{ reason: 'invalid_request', fieldErrors }`) is documented on every endpoint that takes input; 422 only where it happens.
-- `/docs` is open in every environment until auth arrives in phase 3.
+- A DTO is the Zod schema in `packages/contracts` plus its inferred type (for example `orderRequestSchema` and `OrderRequest`). Handlers take inputs with `@Body/@Param/@Query({ schema })` and return that type. Validation is unchanged: the global `StandardSchemaValidationPipe` and the 400 `{ reason: 'invalid_request', fieldErrors }`.
+- No DTO classes and no `@ApiProperty` fields: they would describe a shape twice and drift from the schemas.
+- `SwaggerModule.createDocument` with `DocumentBuilder` reflects every route. Request bodies, params and queries come from the `schema` option of the parameter decorators, converted to OpenAPI 3.0.
+- Each handler adds what cannot be inferred: `@ApiOperation({ summary })`, `@ApiResponse({ status, description, standardSchema })` for each response (200/201, the 400 on routes with input, the 422 on `POST /order-requests`), and `@ApiHeader` for custom headers such as `Idempotency-Key`.
+- Swagger UI is served at `/docs` and the document at `/docs/openapi.json` through `setupDocs` in `apps/api/src/docs/setup-docs.ts`. There is no auth and no environment restriction until phase 3.
+- A docs e2e test checks that the document is valid OpenAPI 3, that its routes equal the registered routes, that every operation has a 2xx response with a schema, that every operation with input documents a 400, and that the `Idempotency-Key` header is listed.
 
 ## Rejected
-- `@nestjs/swagger` decorators or DTO classes: they describe each shape a second time, and the library does not read Zod.
-- `zod-openapi` and `@asteasolutions/zod-to-openapi`: they add a wrapper API for what native conversion and `.meta()` already do.
-- Reading routes from `@nestjs/swagger` discovery: it finds paths but not Zod schemas, so a registry would still be needed.
+- DTO classes from a `createZodDto` helper, or `nestjs-zod`: an extra layer over what the Standard Schema support already does, and `nestjs-zod`'s peers stop at Nest 11.
+- class-validator DTOs with `@ApiProperty`: they restate every field.
+- `zod-openapi` and `zod-to-openapi`: not needed now that swagger converts Zod itself.
+- Our own route registry and spec builder (the first version of this work): it duplicated what `createDocument` already does and could drift from the controllers.
 
 ## Consequences
-- A registry entry can name the wrong schema for a route; the test catches missing routes, not mismatched shapes.
-- DTO classes derived from Zod (a `createZodDto` style helper) are deferred to a possible separate ticket.
+- Response schemas are declared in decorators and can drift from a handler's return type. The test only checks that they exist.
+- `@ApiResponse({ standardSchema })` is supported in `@nestjs/swagger` 12.1.2 but is not on the official docs page, so check it on upgrades.
+- Custom param decorators such as `@IdempotencyKey()` are not visible to swagger, so their header is documented with `@ApiHeader`.

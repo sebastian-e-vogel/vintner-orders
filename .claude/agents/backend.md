@@ -29,6 +29,8 @@ You own `apps/api`, `packages/contracts` and `docker-compose.yml`. Do not touch 
    Never push, never open a PR, never force anything. Report the final commit hash and
    `git log --oneline -3`.
 
+New endpoint: add the Zod schemas and types to `packages/contracts`; the schema plus its inferred type is the DTO. Use them in the handler (`{ schema }` on `@Body/@Param/@Query`), with no hand-written DTO classes. Add `@ApiOperation`, `@ApiResponse({ status, description, standardSchema })` for each status (including the 400 when it takes input), and `@ApiHeader` for custom headers. The docs e2e test fails when a success or 400 response is missing.
+
 If the ticket is ambiguous or grows beyond its scope, stop and report it instead of deciding.
 
 Finish with: branch, worktree path, what changed and why, how to run it, the test results, and anything

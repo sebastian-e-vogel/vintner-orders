@@ -74,7 +74,7 @@ It empties every app table (not the migrations table) and inserts fixed demo dat
 
 ## API docs
 
-With the API running (`pnpm dev:api`), Swagger UI is at http://localhost:3001/docs and the raw OpenAPI document at http://localhost:3001/docs/openapi.json. They are generated from the Zod schemas in `packages/contracts`; see [ADR 0005](docs/adr/0005-openapi-from-zod-contracts.md). A new endpoint adds a `*.docs.ts` file next to its controller and lists it in `apps/api/src/docs/routes.ts`; the docs e2e test fails until it does. No auth yet, and the docs are served in every environment.
+With the API running (`pnpm dev:api`), Swagger UI is at http://localhost:3001/docs and the raw OpenAPI document at http://localhost:3001/docs/openapi.json. They are generated from the Zod schemas in `packages/contracts`; see [ADR 0005](docs/adr/0005-openapi-from-zod-contracts.md). A new endpoint documents itself with `@ApiOperation` and `@ApiResponse({ standardSchema })` on its handler; the docs e2e test fails when a response schema is missing. No auth yet, and the docs are served in every environment.
 
 ## Status
 
