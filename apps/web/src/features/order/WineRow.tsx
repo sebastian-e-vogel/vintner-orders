@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
@@ -11,6 +12,7 @@ import {
   getLineStatus,
   type LineStatusTone,
 } from './lineStatus';
+import { focusQuantity, type GoTo } from './goTo';
 import { sanitizeQuantity } from './quantity';
 import {
   describeVintage,
@@ -26,6 +28,7 @@ type WineRowProps = {
   quantityText: string | undefined;
   policy: InventoryPolicy;
   onQuantityChange: (wineId: string, quantityText: string) => void;
+  goTo?: GoTo;
   quickFill?: React.ReactNode;
 };
 
@@ -50,16 +53,15 @@ export const lineToneClass: Record<LineStatusTone, string> = {
   error: 'border-danger bg-danger-soft',
 };
 
-// Anchor target for the request panel links.
-export const wineRowId = (wineId: string) => `wine-row-${wineId}`;
-
 export function WineRow({
   wine,
   quantityText,
   policy,
   onQuantityChange,
+  goTo,
   quickFill,
 }: WineRowProps) {
+  const handledToken = useRef<number>(undefined);
   const isInRequest = quantityText !== undefined;
   const isBlocked = isStrictBlocked(wine.available, policy) && !isInRequest;
   const status = isInRequest
@@ -71,15 +73,30 @@ export function WineRow({
   const size = formatBottleSize(wine.sizeMl);
   const inputId = `quantity-${wine.id}`;
   const statusId = `status-${wine.id}`;
+  const highlightClass = goTo?.highlightIds.includes(wine.id)
+    ? goTo.token % 2 === 0
+      ? 'animate-row-highlight-a motion-reduce:animate-none'
+      : 'animate-row-highlight-b motion-reduce:animate-none'
+    : '';
+  // Focus once per request: the ref callback runs again on every render.
+  function takeFocus(input: HTMLInputElement | null) {
+    if (
+      !input ||
+      goTo?.wineId !== wine.id ||
+      handledToken.current === goTo.token
+    )
+      return;
+    handledToken.current = goTo.token;
+    focusQuantity(input);
+  }
 
   return (
     <li
-      id={wineRowId(wine.id)}
       className={`flex scroll-mt-4 flex-wrap items-center gap-x-3 gap-y-1 rounded-md border-l-4 px-3 py-2 min-[860px]:grid min-[860px]:grid-cols-[2.5rem_4.5rem_minmax(0,1fr)_7rem_5rem] min-[1240px]:grid-cols-[2.5rem_4.5rem_minmax(0,1fr)_9rem_7rem_5rem] ${
         isInRequest && status
           ? lineToneClass[status.tone]
           : 'border-transparent'
-      }`}
+      } ${highlightClass}`}
     >
       <span className="text-sm font-medium">
         {wine.vintage === null ? (
@@ -106,6 +123,7 @@ export function WineRow({
         </label>
         <Input
           id={inputId}
+          ref={takeFocus}
           type="text"
           inputMode="numeric"
           placeholder="Qty"

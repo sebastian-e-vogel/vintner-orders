@@ -4,12 +4,15 @@ import { useRouter } from 'next/navigation';
 import { useOptimistic, useState, useTransition } from 'react';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 import { CallerSection } from './CallerSection';
+import { isStrictBlocked } from './availability';
 import type { Customer } from './customer';
+import type { GoTo } from './goTo';
 import { addedMessage, type LastTime, type SkippedCounts } from './lastTime';
 import { LastTimeCard } from './LastTimeCard';
 import { RecentWines } from './RecentWines';
 import { RequestPanel } from './RequestPanel';
 import { buildRequestLines } from './requestLines';
+import { allProducers } from './groupByProducer';
 import { WineSection } from './WineSection';
 import { describeWine, type Wine } from './wine';
 
@@ -41,6 +44,8 @@ export function NewOrderDraft({
   const [phone, setPhone] = useState('');
   const [lines, setLines] = useState<Record<string, string>>({});
   const [addMessage, setAddMessage] = useState('');
+  const [producer, setProducer] = useState(allProducers);
+  const [goTo, setGoTo] = useState<GoTo>();
 
   const chosenCustomer = customers.find(({ id }) => id === chosenId);
   const lastTimeQuantities = Object.fromEntries(
@@ -66,9 +71,36 @@ export function NewOrderDraft({
     });
   }
 
-  // Puts wines in the request with an empty quantity and announces it in the catalog.
-  // Wines already in the request or missing from the catalog are left alone.
-  // `source` and `skipped` only describe a bulk add, such as "Add all" from last time.
+  // Moves the rep to the first wine's quantity and highlights all of them. Focus is
+  // applied by the row once it renders, so a hidden wine first resets the filter.
+  function goToWines(wineIds: string[]) {
+    const isHidden = wines.some(
+      (wine) => wineIds.includes(wine.id) && wine.producer !== producer,
+    );
+    if (producer !== allProducers && isHidden) setProducer(allProducers);
+    setGoTo((previous) => ({
+      wineId: wineIds[0],
+      highlightIds: wineIds,
+      token: (previous?.token ?? 0) + 1,
+    }));
+  }
+
+  function handleGoToLine(wineId: string) {
+    setAddMessage('');
+    goToWines([wineId]);
+  }
+
+  function handleProducerChange(next: string) {
+    setProducer(next);
+    // A later filter change must not replay the old move when rows remount.
+    setGoTo(undefined);
+  }
+
+  // Puts wines in the request with an empty quantity, announces it in the catalog
+  // and goes to the first one. Wines already in the request or missing from the
+  // catalog are left alone. `source` and `skipped` only describe a bulk add, such
+  // as "Add all" from last time, which also goes through and highlights the
+  // last-time wines that were already in the request.
   function addWines(
     wineIds: string[],
     source?: string,
@@ -83,26 +115,41 @@ export function NewOrderDraft({
       ...Object.fromEntries(added.map(({ id }) => [id, ''])),
     }));
     setAddMessage(addedMessage(added, source, skipped));
+    const addedIds = added.map(({ id }) => id);
+    goToWines(
+      source
+        ? (lastTime?.items ?? [])
+            .map(({ wine }) => wine.id)
+            .filter((id) => addedIds.includes(id) || lines[id] !== undefined)
+        : addedIds,
+    );
   }
 
   function handleRemove(wineId: string) {
-    const wine = wines.find(({ id }) => id === wineId);
     setLines((current) =>
       Object.fromEntries(
         Object.entries(current).filter(([id]) => id !== wineId),
       ),
     );
-    if (wine) setAddMessage(`Removed ${describeWine(wine)} from the request.`);
+    setAddMessage('');
   }
 
+  // Picking a recent wine only moves the rep to its quantity: the line appears once they type.
   function handleRecentPick(wineId: string) {
     const wine = wines.find(({ id }) => id === wineId);
     if (!wine) return;
-    if (lines[wineId] === undefined) {
-      addWines([wineId]);
+    const name = describeWine(wine);
+    if (lines[wineId] !== undefined) {
+      setAddMessage('');
+    } else if (isStrictBlocked(wine.available, policy)) {
+      setAddMessage(
+        `${name} can't be added: it's out of stock under the strict policy.`,
+      );
+      return;
     } else {
-      setAddMessage(`${describeWine(wine)} is already in the request.`);
+      setAddMessage(`Type the quantity for ${name}.`);
     }
+    goToWines([wineId]);
   }
 
   return (
@@ -125,6 +172,7 @@ export function NewOrderDraft({
           lines={lines}
           policy={policy}
           onAdd={addWines}
+          onGoTo={handleGoToLine}
         />
       )}
       <div className="mt-6 grid items-start gap-6 min-[860px]:grid-cols-[minmax(0,1fr)_22.5rem] min-[1240px]:grid-cols-[18rem_minmax(0,1fr)_22.5rem]">
@@ -143,6 +191,9 @@ export function NewOrderDraft({
             policy={policy}
             lastTimeQuantities={lastTimeQuantities}
             statusMessage={addMessage}
+            producer={producer}
+            goTo={goTo}
+            onProducerChange={handleProducerChange}
             onQuantityChange={(wineId, text) =>
               setLines((current) => ({ ...current, [wineId]: text }))
             }
@@ -156,6 +207,7 @@ export function NewOrderDraft({
             customerName={chosenCustomer?.companyName}
             lines={requestLines}
             policy={policy}
+            onGoTo={handleGoToLine}
             onRemove={handleRemove}
           />
         </aside>

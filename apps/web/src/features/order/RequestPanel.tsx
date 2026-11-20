@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { PolicyBadge } from '@/components/PolicyBadge';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 import { summarizeRequest, type RequestLine } from './requestLines';
-import { lineToneClass, statusClass, wineRowId } from './WineRow';
+import { lineToneClass, statusClass } from './WineRow';
 import { describeWine, formatBottleSize, formatVintage } from './wine';
 
 type RequestPanelProps = {
@@ -10,6 +10,7 @@ type RequestPanelProps = {
   customerName?: string;
   lines: RequestLine[];
   policy: InventoryPolicy;
+  onGoTo: (wineId: string) => void;
   onRemove: (wineId: string) => void;
 };
 
@@ -63,6 +64,7 @@ export function RequestPanel({
   customerName,
   lines,
   policy,
+  onGoTo,
   onRemove,
 }: RequestPanelProps) {
   return (
@@ -102,10 +104,11 @@ export function RequestPanel({
               key={wine.id}
               className={`grid grid-cols-[3rem_1fr_auto] items-start gap-x-3 gap-y-1 rounded-md border-l-4 px-3 py-2 ${lineToneClass[status.tone]}`}
             >
-              <a
-                href={`#${wineRowId(wine.id)}`}
+              <button
+                type="button"
+                onClick={() => onGoTo(wine.id)}
                 aria-label={`${quantityText || 'No quantity'} of ${describeWine(wine)}. Go to its row.`}
-                className="col-span-2 grid grid-cols-subgrid rounded-md hover:underline focus-visible:outline-2 focus-visible:outline-ring"
+                className="col-span-2 grid grid-cols-subgrid rounded-md text-left focus-visible:outline-2 focus-visible:outline-ring"
               >
                 <span className="font-bold">{quantityText || '—'}</span>
                 <span className="flex flex-wrap items-center gap-2">
@@ -114,7 +117,7 @@ export function RequestPanel({
                     {formatBottleSize(wine.sizeMl)}
                   </span>
                 </span>
-              </a>
+              </button>
               <button
                 type="button"
                 aria-label={`Remove ${describeWine(wine)}`}

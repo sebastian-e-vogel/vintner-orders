@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 import { winesFixture } from '@/fixtures/wines';
+import { allProducers } from './groupByProducer';
 import { WineSection } from './WineSection';
 import type { Wine } from './wine';
 
@@ -15,6 +16,7 @@ function Harness({
   wines?: Wine[];
 }) {
   const [lines, setLines] = useState<Record<string, string>>({});
+  const [producer, setProducer] = useState(allProducers);
   return (
     <WineSection
       wines={wines}
@@ -22,6 +24,8 @@ function Harness({
       policy={policy}
       lastTimeQuantities={{}}
       statusMessage=""
+      producer={producer}
+      onProducerChange={setProducer}
       onQuantityChange={(id, text) => setLines((c) => ({ ...c, [id]: text }))}
     />
   );

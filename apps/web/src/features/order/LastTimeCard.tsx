@@ -12,6 +12,7 @@ type LastTimeCardProps = {
   lines: Record<string, string>;
   policy: InventoryPolicy;
   onAdd: (wineIds: string[], source?: string, skipped?: SkippedCounts) => void;
+  onGoTo: (wineId: string) => void;
 };
 
 function Body({
@@ -21,6 +22,7 @@ function Body({
   lines,
   policy,
   onAdd,
+  onGoTo,
 }: LastTimeCardProps) {
   if (isLoading) {
     return (
@@ -72,6 +74,7 @@ function Body({
         lines={lines}
         policy={policy}
         onAdd={onAdd}
+        onGoTo={onGoTo}
       />
     </>
   );

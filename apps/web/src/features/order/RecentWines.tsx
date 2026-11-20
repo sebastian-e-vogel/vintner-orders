@@ -1,5 +1,9 @@
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
-import { describeAvailability, type AvailabilityLevel } from './availability';
+import {
+  describeAvailability,
+  isStrictBlocked,
+  type AvailabilityLevel,
+} from './availability';
 import { formatBottleSize, formatVintage, type Wine } from './wine';
 
 type RecentWinesProps = {
@@ -38,12 +42,12 @@ export function RecentWines({
       {wines.length === 0 ? (
         <p>You haven&apos;t added any wines yet.</p>
       ) : (
-        <ol className="flex flex-wrap gap-2">
+        <ol className="flex flex-col gap-2">
           {wines.map((wine) => {
             const quantityText = lines[wine.id];
             const isInRequest = quantityText !== undefined;
             const isBlocked =
-              policy === 'strict' && wine.available === 0 && !isInRequest;
+              isStrictBlocked(wine.available, policy) && !isInRequest;
             const availability = describeAvailability(wine.available);
             const name = `${wine.producer} ${wine.wineName} ${formatVintage(wine.vintage)}`;
             const size = formatBottleSize(wine.sizeMl);
@@ -57,9 +61,9 @@ export function RecentWines({
                 <button
                   type="button"
                   aria-label={label}
-                  disabled={isBlocked}
+                  aria-disabled={isBlocked}
                   onClick={() => onPick(wine.id)}
-                  className={`flex flex-col items-start gap-1 rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-primary-soft disabled:opacity-50 disabled:hover:bg-transparent ${
+                  className={`flex w-full flex-col items-start gap-1 rounded-md border border-border px-3 py-2 text-left text-sm hover:border-foreground/40 aria-disabled:opacity-50 aria-disabled:hover:border-border ${
                     isInRequest ? 'bg-success-soft' : ''
                   }`}
                 >
