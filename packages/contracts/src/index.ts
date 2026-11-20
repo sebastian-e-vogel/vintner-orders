@@ -21,3 +21,4 @@ export * from './order-request.js';
 export * from './save-order-request.js';
 export * from './saved-order-requests.js';
 export * from './last-time.js';
+export * from './health.js';

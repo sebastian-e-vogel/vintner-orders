@@ -24,6 +24,7 @@ Phone-order desk for a fictional wine distributor. Monorepo: `apps/web` (Next.js
 - Only `apps/api` talks to the database, through TypeORM. Schema changes are versioned migrations. `synchronize` is never on.
 - `apps/web` calls the API over HTTP and never imports database code.
 - Validate all input on the server with the Zod schemas from `packages/contracts`. The client may reuse them for early feedback, but that never replaces server validation. Checks that depend on data or business rules (a record exists, stock is available) are separate server-side checks, not schema rules.
+- Every endpoint is described by Zod schemas in `packages/contracts`: the schema plus its inferred type is the DTO. Handlers take inputs with `@Body/@Param/@Query({ schema })` and return that type. Do not write DTO classes or `@ApiProperty` fields by hand, because they describe a shape twice. Document each handler with `@ApiOperation` and `@ApiResponse({ standardSchema })`.
 
 ## React
 
