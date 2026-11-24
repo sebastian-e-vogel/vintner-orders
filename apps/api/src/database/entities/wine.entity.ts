@@ -2,6 +2,7 @@ import { Check, Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity()
 @Check('CHK_wine_available_non_negative', '"available" >= 0')
+@Check('CHK_wine_size_ml_positive', '"size_ml" > 0')
 export class Wine {
   @PrimaryColumn({ type: 'uuid', default: () => 'gen_random_uuid()' })
   id: string;
@@ -16,9 +17,12 @@ export class Wine {
   @Column({ type: 'integer', nullable: true })
   vintage: number | null;
 
-  // Free text such as "750 ml" or "1.5 L".
   @Column({ type: 'varchar' })
-  format: string;
+  region: string;
+
+  // Bottle size in millilitres.
+  @Column({ type: 'integer' })
+  sizeMl: number;
 
   @Column({ type: 'varchar', unique: true })
   sku: string;

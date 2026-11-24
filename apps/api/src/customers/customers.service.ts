@@ -12,10 +12,10 @@ type ItemRow = WineResponse & { quantity: number };
 
 // Same order as GET /wines, so the lines read like the catalog.
 const itemsSql = (table: string, foreignKey: string) => `
-  SELECT i.quantity, w.id, w.name, w.producer, w.vintage, w.format, w.sku, w.available
+  SELECT i.quantity, w.id, w.name, w.producer, w.vintage, w.region, w.size_ml AS "sizeMl", w.sku, w.available
   FROM ${table} i JOIN wine w ON w.id = i.wine_id
   WHERE i.${foreignKey} = $1
-  ORDER BY w.name, w.vintage NULLS LAST, w.format, w.sku`;
+  ORDER BY w.name, w.vintage NULLS LAST, w.size_ml, w.sku`;
 const orderItemsSql = itemsSql('historical_order_item', 'order_id');
 const requestItemsSql = itemsSql('order_request_item', 'request_id');
 

@@ -6,7 +6,8 @@ export const wineSchema = z.object({
   producer: z.string(),
   // Null for non-vintage wines.
   vintage: z.number().int().nullable(),
-  format: z.string(),
+  region: z.string(),
+  sizeMl: z.number().int().positive(),
   sku: z.string(),
   available: z.number().int().nonnegative(),
 });

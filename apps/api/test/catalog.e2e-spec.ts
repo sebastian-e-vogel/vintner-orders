@@ -34,7 +34,8 @@ describe('Wine and customer lists (e2e)', () => {
     name: 'Barolo',
     producer: 'Conterno',
     vintage: 2019,
-    format: '750 ml',
+    region: 'Barolo',
+    sizeMl: 750,
     sku: 'SKU-1',
     available: 10,
     ...overrides,
@@ -45,24 +46,24 @@ describe('Wine and customer lists (e2e)', () => {
       await request(app.getHttpServer()).get('/wines').expect(200).expect([]);
     });
 
-    it('sorts by name, vintage (non-vintage last), format, then sku', async () => {
+    it('sorts by name, vintage (non-vintage last), size, then sku', async () => {
       await dataSource
         .getRepository(Wine)
         .save([
           wine({ sku: 'f', name: 'Chianti', vintage: null }),
           wine({ sku: 'e', name: 'Barolo', vintage: 2021 }),
           wine({ sku: 'd', name: 'Barolo', vintage: null }),
-          wine({ sku: 'c', name: 'Barolo', vintage: 2019, format: '750 ml' }),
-          wine({ sku: 'b', name: 'Barolo', vintage: 2019, format: '1.5 L' }),
-          wine({ sku: 'a', name: 'Barolo', vintage: 2019, format: '1.5 L' }),
+          wine({ sku: 'c', name: 'Barolo', vintage: 2019, sizeMl: 750 }),
+          wine({ sku: 'b', name: 'Barolo', vintage: 2019, sizeMl: 1500 }),
+          wine({ sku: 'a', name: 'Barolo', vintage: 2019, sizeMl: 1500 }),
         ]);
 
       const res = await request(app.getHttpServer()).get('/wines').expect(200);
 
       expect(res.body.map((w: { sku: string }) => w.sku)).toEqual([
+        'c',
         'a',
         'b',
-        'c',
         'e',
         'd',
         'f',
@@ -80,7 +81,8 @@ describe('Wine and customer lists (e2e)', () => {
           name: 'Barolo',
           producer: 'Conterno',
           vintage: null,
-          format: '750 ml',
+          region: 'Barolo',
+          sizeMl: 750,
           sku: 'SKU-1',
           available: 10,
         },

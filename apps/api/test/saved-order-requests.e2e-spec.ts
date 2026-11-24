@@ -88,14 +88,16 @@ describe('GET /order-requests and /order-requests/count (e2e)', () => {
       name,
       producer,
       vintage,
-      format,
+      region,
+      sizeMl,
       sku,
     }: typeof data.few) => ({
       id,
       name,
       producer,
       vintage,
-      format,
+      region,
+      sizeMl,
       sku,
     });
     expect(res.body[0]).toEqual({

@@ -18,7 +18,7 @@ const recentWinesSql = `
   ), latest AS (
     SELECT wine_id, max(at) AS at FROM activity GROUP BY wine_id
   )
-  SELECT w.id, w.name, w.producer, w.vintage, w.format, w.sku, w.available
+  SELECT w.id, w.name, w.producer, w.vintage, w.region, w.size_ml AS "sizeMl", w.sku, w.available
   FROM latest l JOIN wine w ON w.id = l.wine_id
   ORDER BY l.at DESC, w.id
   LIMIT 10`;

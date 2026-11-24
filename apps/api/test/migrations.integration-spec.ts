@@ -47,4 +47,73 @@ describe('migrations', () => {
 
     expect(await userTables()).toEqual([]);
   });
+  describe('wine region and size_ml', () => {
+    const insertLegacy = (sku: string, format: string) =>
+      dataSource.query(
+        `INSERT INTO wine (name, producer, vintage, format, sku, available)
+         VALUES ('Barolo', 'Conterno', 2019, $1, $2, 1)`,
+        [format, sku],
+      );
+
+    async function revertToBeforeWineChange() {
+      await dataSource.runMigrations({ transaction: 'each' });
+      await dataSource.undoLastMigration({ transaction: 'each' }); // settings
+      await dataSource.undoLastMigration({ transaction: 'each' }); // wine change
+    }
+
+    afterEach(async () => {
+      await dataSource.dropDatabase();
+    });
+
+    it('converts format to size_ml, backfills region and reverts format', async () => {
+      await revertToBeforeWineChange();
+      await insertLegacy('a', '750 ml');
+      await insertLegacy('b', '1.5 L');
+      await insertLegacy('c', '375 ml');
+      await insertLegacy('d', '500 ml');
+      await insertLegacy('e', '75cl');
+
+      await dataSource.runMigrations({ transaction: 'each' });
+      const rows: { sku: string; size_ml: number; region: string }[] =
+        await dataSource.query(
+          'SELECT sku, size_ml, region FROM wine ORDER BY sku',
+        );
+      expect(rows).toEqual([
+        { sku: 'a', size_ml: 750, region: 'Unknown' },
+        { sku: 'b', size_ml: 1500, region: 'Unknown' },
+        { sku: 'c', size_ml: 375, region: 'Unknown' },
+        { sku: 'd', size_ml: 500, region: 'Unknown' },
+        { sku: 'e', size_ml: 750, region: 'Unknown' },
+      ]);
+
+      await dataSource.undoLastMigration({ transaction: 'each' });
+      await dataSource.undoLastMigration({ transaction: 'each' });
+      const back: { sku: string; format: string }[] = await dataSource.query(
+        'SELECT sku, format FROM wine ORDER BY sku',
+      );
+      expect(back.map((r) => r.format)).toEqual([
+        '750 ml',
+        '1.5 L',
+        '375 ml',
+        '500 ml',
+        '750 ml',
+      ]);
+    });
+
+    it('fails and changes nothing when a format cannot be parsed', async () => {
+      await revertToBeforeWineChange();
+      await insertLegacy('a', '750 ml');
+      await insertLegacy('b', 'magnum');
+
+      await expect(
+        dataSource.runMigrations({ transaction: 'each' }),
+      ).rejects.toThrow(/magnum/);
+
+      const columns: { column_name: string }[] = await dataSource.query(
+        `SELECT column_name FROM information_schema.columns
+         WHERE table_name = 'wine' AND column_name IN ('format', 'size_ml', 'region')`,
+      );
+      expect(columns.map((c) => c.column_name)).toEqual(['format']);
+    });
+  });
 });

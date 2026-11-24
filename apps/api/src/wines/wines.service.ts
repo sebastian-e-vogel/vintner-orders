@@ -17,14 +17,15 @@ export class WinesService {
         name: true,
         producer: true,
         vintage: true,
-        format: true,
+        region: true,
+        sizeMl: true,
         sku: true,
         available: true,
       },
       order: {
         name: 'ASC',
         vintage: { direction: 'ASC', nulls: 'LAST' },
-        format: 'ASC',
+        sizeMl: 'ASC',
         sku: 'ASC',
       },
     });

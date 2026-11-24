@@ -43,35 +43,43 @@ export const customers = [
   phone,
 }));
 
-// [name, producer, vintage, format, available]
-const wineRows: [string, string, number | null, string, number][] = [
-  ['Rosso del Colle', 'Cantina Monteverde', 2021, '750 ml', 240],
-  ['Rosso del Colle', 'Cantina Monteverde', 2022, '750 ml', 180],
-  ['Rosso del Colle', 'Cantina Monteverde', 2021, '1.5 L', 12],
-  ['Bianco di Rocca', 'Cantina Monteverde', 2023, '750 ml', 96],
-  ['Riserva Antica', 'Tenuta Valdoro', 2018, '750 ml', 24],
-  ['Riserva Antica', 'Tenuta Valdoro', 2019, '750 ml', 0],
-  ['Pinot Gris Fjell', 'Fjordhaug Vinhus', 2023, '750 ml', 130],
-  ['Riesling Tidvann', 'Fjordhaug Vinhus', 2022, '750 ml', 7],
-  ['Riesling Tidvann', 'Fjordhaug Vinhus', 2022, '375 ml', 60],
-  ['Cuvée des Falaises', 'Domaine Saint-Orelle', 2020, '750 ml', 48],
-  ['Cuvée des Falaises', 'Domaine Saint-Orelle', 2020, '1.5 L', 6],
-  ['Rosé Calanque', 'Domaine Saint-Orelle', 2024, '750 ml', 320],
-  ['Blanc de Brume', 'Domaine Saint-Orelle', 2023, '750 ml', 0],
-  ['Old Vine Syrah', 'Harrowfield Estate', 2019, '750 ml', 35],
-  ['Chalk Hill Chardonnay', 'Harrowfield Estate', 2022, '750 ml', 72],
-  ['Brut Réserve', 'Maison Verdelle', null, '750 ml', 150],
-  ['Brut Réserve', 'Maison Verdelle', null, '1.5 L', 3],
-  ['Vin Doux du Soir', 'Maison Verdelle', 2017, '500 ml', 0],
+// [name, producer, region, vintage, sizeMl, available]
+const wineRows: [string, string, string, number | null, number, number][] = [
+  ['Rosso del Colle', 'Cantina Monteverde', 'Montepulciano', 2021, 750, 240],
+  ['Rosso del Colle', 'Cantina Monteverde', 'Montepulciano', 2022, 750, 180],
+  ['Rosso del Colle', 'Cantina Monteverde', 'Montepulciano', 2021, 1500, 12],
+  ['Bianco di Rocca', 'Cantina Monteverde', 'Montepulciano', 2023, 750, 96],
+  ['Riserva Antica', 'Tenuta Valdoro', 'Chianti Classico', 2018, 750, 24],
+  ['Riserva Antica', 'Tenuta Valdoro', 'Chianti Classico', 2019, 750, 0],
+  ['Pinot Gris Fjell', 'Fjordhaug Vinhus', 'Hardanger', 2023, 750, 130],
+  ['Riesling Tidvann', 'Fjordhaug Vinhus', 'Hardanger', 2022, 750, 7],
+  ['Riesling Tidvann', 'Fjordhaug Vinhus', 'Hardanger', 2022, 375, 60],
+  ['Cuvée des Falaises', 'Domaine Saint-Orelle', 'Cassis', 2020, 750, 48],
+  ['Cuvée des Falaises', 'Domaine Saint-Orelle', 'Cassis', 2020, 1500, 6],
+  ['Rosé Calanque', 'Domaine Saint-Orelle', 'Cassis', 2024, 750, 320],
+  ['Blanc de Brume', 'Domaine Saint-Orelle', 'Cassis', 2023, 750, 0],
+  ['Old Vine Syrah', 'Harrowfield Estate', 'Barossa Valley', 2019, 750, 35],
+  [
+    'Chalk Hill Chardonnay',
+    'Harrowfield Estate',
+    'Barossa Valley',
+    2022,
+    750,
+    72,
+  ],
+  ['Brut Réserve', 'Maison Verdelle', 'Champagne', null, 750, 150],
+  ['Brut Réserve', 'Maison Verdelle', 'Champagne', null, 1500, 3],
+  ['Vin Doux du Soir', 'Maison Verdelle', 'Loire Valley', 2017, 500, 0],
 ];
 
 export const wines = wineRows.map(
-  ([name, producer, vintage, format, available], i) => ({
+  ([name, producer, region, vintage, sizeMl, available], i) => ({
     id: id('b1', i + 1),
     name,
     producer,
+    region,
     vintage,
-    format,
+    sizeMl,
     sku: `SEED-${String(i + 1).padStart(3, '0')}`,
     available,
   }),
