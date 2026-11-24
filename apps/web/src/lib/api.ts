@@ -1,6 +1,6 @@
 import 'server-only';
 
-// Server-only (see ADR 0005): the only place that reads API_URL.
+// Server-only (see ADR 0006): the only place that reads API_URL.
 export async function apiFetch<T>(
   path: string,
   schema: { parse: (data: unknown) => T },
