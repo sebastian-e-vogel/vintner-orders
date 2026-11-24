@@ -4,13 +4,13 @@ import { SavedRequestList } from './SavedRequestList';
 import type { SavedRequest } from './savedRequest';
 
 const base: SavedRequest = {
-  reference: 'R-1',
+  id: 'R-1',
   savedAt: '2026-11-10T09:00:00.000Z',
   customer: 'Cellar Door',
   usualContact: 'Ana Lopez',
   contactName: 'Ana Lopez',
   phone: '555-0101',
-  repId: 'rep-1',
+  salesRepName: 'Rosa Vega',
   policy: 'strict',
   lines: [
     {
@@ -22,13 +22,14 @@ const base: SavedRequest = {
       size: '750 ml',
       requested: 6,
       availableAtSave: 6,
+      shortBy: 0,
     },
   ],
 };
 
 const newer: SavedRequest = {
   ...base,
-  reference: 'R-2',
+  id: 'R-2',
   savedAt: '2026-11-12T15:30:00.000Z',
   customer: 'Bistro Nord',
   contactName: 'Tom Berg',
@@ -36,14 +37,20 @@ const newer: SavedRequest = {
   policy: 'flexible',
   note: 'Deliver before Friday',
   lines: [
-    { ...base.lines[0], id: 'b', requested: 10, availableAtSave: 4 },
-    { ...base.lines[0], id: 'c', wine: 'Blanc', requested: 2 },
+    {
+      ...base.lines[0],
+      id: 'b',
+      requested: 10,
+      availableAtSave: 4,
+      shortBy: 6,
+    },
+    { ...base.lines[0], id: 'c', wine: 'Blanc', requested: 2, vintage: null },
   ],
 };
 
 describe('SavedRequestList', () => {
-  it('lists requests newest first with count, lines and shortage', () => {
-    render(<SavedRequestList requests={[base, newer]} />);
+  it('lists requests in the given order with count, lines and shortage', () => {
+    render(<SavedRequestList requests={[newer, base]} />);
 
     expect(screen.getByRole('status')).toHaveTextContent('2 requests');
     const articles = screen.getAllByRole('article');
@@ -55,6 +62,9 @@ describe('SavedRequestList', () => {
     expect(first.getByText('1 short at save')).toBeInTheDocument();
     expect(first.getByText('Short by 6')).toBeInTheDocument();
     expect(first.getByText('(usual: Ana Lopez)')).toBeInTheDocument();
+    expect(first.getByText('Rosa Vega')).toBeInTheDocument();
+    expect(first.getByText('NV')).toBeInTheDocument();
+    expect(first.getAllByText('Rhone')).toHaveLength(2);
     expect(first.getByText('Flexible policy')).toBeInTheDocument();
     expect(first.getByText('Deliver before Friday')).toBeInTheDocument();
     expect(first.getByText(/bottles in 2 wines/)).toBeInTheDocument();
@@ -65,6 +75,12 @@ describe('SavedRequestList', () => {
     expect(second.queryByText(/usual:/)).not.toBeInTheDocument();
     expect(second.queryByText('Note for the reviewer')).not.toBeInTheDocument();
     expect(second.getByText(/bottles in 1 wine$/)).toBeInTheDocument();
+  });
+
+  it('keeps the API order instead of sorting by date', () => {
+    render(<SavedRequestList requests={[base, newer]} />);
+    const headings = screen.getAllByRole('heading').map((h) => h.textContent);
+    expect(headings).toEqual(['Cellar Door', 'Bistro Nord']);
   });
 
   it('uses the singular for one request', () => {

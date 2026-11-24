@@ -1,13 +1,16 @@
 import { connection } from 'next/server';
 import { PageHeading } from '@/components/PageHeading';
+import { getSavedRequestCount } from '@/features/requests/api';
 import { InventoryPolicyForm } from '@/features/settings/InventoryPolicyForm';
 import { getInventoryPolicy } from '@/features/settings/api';
 import { saveInventoryPolicy } from '@/features/settings/actions';
-import { inventoryPolicyFixture } from '@/fixtures/inventoryPolicy';
 
 export default async function SettingsPage() {
   await connection();
-  const { policy, changedAt } = await getInventoryPolicy();
+  const [{ policy, changedAt }, savedRequestCount] = await Promise.all([
+    getInventoryPolicy(),
+    getSavedRequestCount(),
+  ]);
 
   return (
     <>
@@ -15,8 +18,7 @@ export default async function SettingsPage() {
       <InventoryPolicyForm
         currentPolicy={policy}
         changedAt={changedAt}
-        // TEMPORARY: no endpoint yet, see #36.
-        savedRequestCount={inventoryPolicyFixture.savedRequestCount}
+        savedRequestCount={savedRequestCount}
         onSave={saveInventoryPolicy}
       />
     </>

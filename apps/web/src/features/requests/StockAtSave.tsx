@@ -1,11 +1,11 @@
-import { shortBy, type SavedRequestLine } from './savedRequest';
+import { type SavedRequestLine } from './savedRequest';
 
 type StockAtSaveProps = {
   line: SavedRequestLine;
 };
 
 export function StockAtSave({ line }: StockAtSaveProps) {
-  const short = shortBy(line);
+  const short = line.shortBy;
 
   return short > 0 ? (
     <span className="text-warning">
