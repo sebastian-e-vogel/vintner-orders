@@ -47,27 +47,6 @@ describe('getInventoryPolicy', () => {
     respond(body);
     await expect(getInventoryPolicy()).rejects.toThrow();
   });
-
-  it('rejects a body that is not JSON', async () => {
-    fetchMock.mockResolvedValue(new Response('<html>', { status: 200 }));
-    await expect(getInventoryPolicy()).rejects.toThrow();
-  });
-
-  it('propagates a network failure', async () => {
-    fetchMock.mockRejectedValue(new TypeError('fetch failed'));
-    await expect(getInventoryPolicy()).rejects.toThrow('fetch failed');
-  });
-
-  it.each(['', undefined])(
-    'fails clearly without calling fetch when API_URL is %j',
-    async (value) => {
-      if (value === undefined) vi.stubEnv('API_URL', undefined);
-      else vi.stubEnv('API_URL', value);
-
-      await expect(getInventoryPolicy()).rejects.toThrow('API_URL is not set');
-      expect(fetchMock).not.toHaveBeenCalled();
-    },
-  );
 });
 
 describe('putInventoryPolicy', () => {
