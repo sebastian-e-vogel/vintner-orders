@@ -1,9 +1,8 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { customersFixture } from './testData';
-import { lastTimeFixture } from '@/fixtures/lastTime';
-import { winesFixture } from './testData';
+import type { LastTime } from '@vintner/contracts';
+import { customersFixture, winesFixture } from './testData';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 import { NewOrderDraft } from './NewOrderDraft';
 
@@ -22,6 +21,30 @@ beforeEach(() => {
 
 const [bellavista, harbour, lindqvist] = customersFixture;
 
+const lastTimeItem = (wineId: string, quantity: number) => ({
+  wine: winesFixture.find(({ id }) => id === wineId)!,
+  quantity,
+});
+const lastTimeByCustomer: Record<string, LastTime> = {
+  [bellavista.id]: {
+    kind: 'order',
+    at: '2026-11-10T14:40:00.000Z',
+    salesRepName: 'Sofia Alvarez',
+    items: [
+      lastTimeItem('wine_08', 12),
+      lastTimeItem('wine_09', 24),
+      lastTimeItem('wine_14', 6),
+      lastTimeItem('wine_06', 3),
+    ],
+  },
+  [harbour.id]: {
+    kind: 'request',
+    at: '2026-11-17T11:20:00.000Z',
+    contactName: 'Priya Nair',
+    items: [lastTimeItem('wine_10', 12), lastTimeItem('wine_13', 6)],
+  },
+};
+
 function renderCaller(customerId = '', policy: InventoryPolicy = 'strict') {
   const view = render(
     <NewOrderDraft
@@ -30,7 +53,7 @@ function renderCaller(customerId = '', policy: InventoryPolicy = 'strict') {
       wines={winesFixture}
       recentWines={[]}
       policy={policy}
-      lastTime={lastTimeFixture[customerId]}
+      lastTime={lastTimeByCustomer[customerId] ?? null}
     />,
   );
   const rerenderWith = (id: string) =>
@@ -41,7 +64,7 @@ function renderCaller(customerId = '', policy: InventoryPolicy = 'strict') {
         wines={winesFixture}
         recentWines={[]}
         policy={policy}
-        lastTime={lastTimeFixture[id]}
+        lastTime={lastTimeByCustomer[id] ?? null}
       />,
     );
   return { user: userEvent.setup(), rerenderWith };
@@ -201,7 +224,7 @@ describe('NewOrderDraft last time', () => {
     const { user } = renderCaller(bellavista.id);
     await user.click(screen.getByRole('button', { name: 'Add 3 wines' }));
     expect(catalogStatus()).toHaveTextContent(
-      "Added 3 wines from last time. Type the quantities. 2 can't be added.",
+      "Added 3 wines from last time. Type the quantities. 1 can't be added.",
     );
     expect(
       screen.getByRole('button', { name: 'Nothing more to add' }),
@@ -210,9 +233,9 @@ describe('NewOrderDraft last time', () => {
 
   it('adds all under flexible, including the out-of-stock wine', async () => {
     const { user } = renderCaller(bellavista.id, 'flexible');
-    await user.click(screen.getByRole('button', { name: 'Add 4 wines' }));
+    await user.click(screen.getByRole('button', { name: 'Add all 4 wines' }));
     expect(catalogStatus()).toHaveTextContent(
-      "Added 4 wines from last time. Type the quantities. 1 can't be added.",
+      'Added 4 wines from last time. Type the quantities.',
     );
   });
 
@@ -223,7 +246,7 @@ describe('NewOrderDraft last time', () => {
     await user.click(screen.getByRole('button', { name: 'Add 3 wines' }));
     expect(input).toHaveValue('7');
     expect(catalogStatus()).toHaveTextContent(
-      "Added 3 wines from last time. Type the quantities. 1 already in the request, 1 can't be added.",
+      'Added 3 wines from last time. Type the quantities. 1 already in the request.',
     );
   });
 
@@ -283,6 +306,7 @@ describe('NewOrderDraft recent wines', () => {
         wines={winesFixture}
         recentWines={[brunello]}
         policy="strict"
+        lastTime={null}
       />,
     );
     return userEvent.setup();
@@ -401,6 +425,7 @@ describe('NewOrderDraft recent wines', () => {
         wines={winesFixture}
         recentWines={[outOfStock]}
         policy="strict"
+        lastTime={null}
       />,
     );
     const user = userEvent.setup();

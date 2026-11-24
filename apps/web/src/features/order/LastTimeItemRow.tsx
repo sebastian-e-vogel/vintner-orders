@@ -27,12 +27,11 @@ export function LastTimeItemRow({
   const { wine, quantity } = item;
   const isOutOfStock = wine.available === 0;
   const name = describeWine(wine);
-  const isDisabled = state === 'blocked' || state === 'discontinued';
+  const isDisabled = state === 'blocked';
   const label = {
     addable: `Add ${name} without a quantity, last time ${quantity}`,
     'in-request': `Go to ${name}, already in this request, last time ${quantity}`,
     blocked: `${name}, out of stock, can't be added under strict policy`,
-    discontinued: `${name}, discontinued, can't be added`,
   }[state];
 
   return (
@@ -66,11 +65,6 @@ export function LastTimeItemRow({
         {state === 'in-request' && (
           <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
             In request
-          </span>
-        )}
-        {state === 'discontinued' && (
-          <span className="text-muted">
-            This wine has been discontinued, so it cannot be added.
           </span>
         )}
         {isOutOfStock && state === 'blocked' && (

@@ -1,9 +1,13 @@
 import { connection } from 'next/server';
 import { PageHeading } from '@/components/PageHeading';
 import { NewOrderDraft } from '@/features/order/NewOrderDraft';
-import { getCustomers, getRecentWines, getWines } from '@/features/order/api';
+import {
+  getCustomers,
+  getLastTime,
+  getRecentWines,
+  getWines,
+} from '@/features/order/api';
 import { getInventoryPolicy } from '@/features/settings/api';
-import { lastTimeFixture } from '@/fixtures/lastTime';
 
 type HomeProps = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -22,6 +26,7 @@ export default async function Home({ searchParams }: HomeProps) {
   const customerId = customers.some(({ id }) => id === customer)
     ? (customer as string)
     : '';
+  const lastTime = customerId ? await getLastTime(customerId) : null;
 
   return (
     <div data-wide>
@@ -36,7 +41,7 @@ export default async function Home({ searchParams }: HomeProps) {
         wines={wines}
         recentWines={recentWines}
         policy={policy}
-        lastTime={lastTimeFixture[customerId]}
+        lastTime={lastTime}
       />
     </div>
   );

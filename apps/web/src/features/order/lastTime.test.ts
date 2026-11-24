@@ -8,46 +8,30 @@ import {
   type LastTimeItem,
 } from './lastTime';
 
-const item = (
-  wineId: string,
-  quantity: number,
-  discontinued = false,
-): LastTimeItem => {
+const item = (wineId: string, quantity: number): LastTimeItem => {
   const wine = winesFixture.find(({ id }) => id === wineId)!;
-  return { wine: { ...wine, discontinued }, quantity };
+  return { wine, quantity };
 };
 
 // wine_03: 120 in stock, wine_06: out of stock, wine_07: 9 in stock.
-const items = [
-  item('wine_03', 6),
-  item('wine_06', 2),
-  item('wine_07', 4),
-  item('wine_08', 1, true),
-];
+const items = [item('wine_03', 6), item('wine_06', 2), item('wine_07', 4)];
 
 describe('itemState', () => {
-  it('classifies an item by discontinuation, request and policy', () => {
+  it('classifies an item by request and policy', () => {
     expect(itemState(items[0], {}, 'strict')).toBe('addable');
     expect(itemState(items[0], { wine_03: '' }, 'strict')).toBe('in-request');
     expect(itemState(items[1], {}, 'strict')).toBe('blocked');
     expect(itemState(items[1], {}, 'flexible')).toBe('addable');
-    expect(itemState(items[3], {}, 'flexible')).toBe('discontinued');
-  });
-
-  it('keeps a discontinued wine out even when it is in the request', () => {
-    expect(itemState(items[3], { wine_08: '3' }, 'flexible')).toBe(
-      'discontinued',
-    );
   });
 });
 
 describe('summarizeAddAll', () => {
   it('counts addable, in request and blocked, strict', () => {
     expect(summarizeAddAll(items, { wine_07: '5' }, 'strict')).toEqual({
-      total: 4,
+      total: 3,
       addableIds: ['wine_03'],
       inRequest: 1,
-      blocked: 2,
+      blocked: 1,
     });
   });
 

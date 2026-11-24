@@ -1,14 +1,15 @@
 import { formatDate } from '@/components/formatTimestamp';
 import { Spinner } from '@/components/ui/Spinner';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
-import type { LastTime, SkippedCounts } from './lastTime';
+import type { LastTime } from '@vintner/contracts';
+import type { SkippedCounts } from './lastTime';
 import { LastTimeItems } from './LastTimeItems';
 
 type LastTimeCardProps = {
   customerName: string;
   isLoading: boolean;
-  // undefined means the customer has no orders or pending requests.
-  last: LastTime | undefined;
+  // null means the customer has no orders or pending requests.
+  last: LastTime | null;
   lines: Record<string, string>;
   policy: InventoryPolicy;
   onAdd: (wineIds: string[], source?: string, skipped?: SkippedCounts) => void;
@@ -57,9 +58,9 @@ function Body({
           {isOrder ? 'Past order' : 'Saved request · pending review'}
         </span>
         <p className="text-sm text-muted">
-          {formatDate(last.date)} ·{' '}
+          {formatDate(last.at)} ·{' '}
           {isOrder
-            ? `taken by ${last.repName || '-'}`
+            ? `taken by ${last.salesRepName}`
             : `caller ${last.contactName}`}
         </p>
         {!isOrder && (
