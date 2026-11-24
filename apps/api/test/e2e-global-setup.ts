@@ -20,7 +20,9 @@ export default async function setup() {
     } finally {
       await dataSource.destroy();
     }
-    Object.assign(process.env, env, { POSTGRES_PORT: String(env.POSTGRES_PORT) });
+    Object.assign(process.env, env, {
+      POSTGRES_PORT: String(env.POSTGRES_PORT),
+    });
   } catch (error) {
     await container.stop();
     throw error;
