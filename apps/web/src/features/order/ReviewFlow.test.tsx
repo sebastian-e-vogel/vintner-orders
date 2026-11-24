@@ -1,8 +1,8 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { customersFixture } from '@/fixtures/customers';
-import { winesFixture } from '@/fixtures/wines';
+import { customersFixture } from './testData';
+import { winesFixture } from './testData';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 import { NewOrderDraft } from './NewOrderDraft';
 import type { OnSave, SaveResult } from './saveResult';

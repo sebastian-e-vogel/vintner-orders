@@ -2,7 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
-import { winesFixture } from '@/fixtures/wines';
+import { winesFixture } from './testData';
 import { RecentWines } from './RecentWines';
 
 const inStock = winesFixture.find(({ available }) => available >= 10)!;

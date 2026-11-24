@@ -1,10 +1,10 @@
-import type { Wine } from './wine';
+import type { Wine } from '@vintner/contracts';
 
-export type WineNameGroup = { wineName: string; wines: Wine[] };
+export type WineNameGroup = { name: string; wines: Wine[] };
 
 export type ProducerGroup = {
   producer: string;
-  wineNames: WineNameGroup[];
+  names: WineNameGroup[];
 };
 
 export const allProducers = '';
@@ -33,13 +33,13 @@ export function groupByProducer(
     )
     .map((producer) => {
       const ofProducer = wines.filter((wine) => wine.producer === producer);
-      const names = [...new Set(ofProducer.map(({ wineName }) => wineName))];
+      const names = [...new Set(ofProducer.map(({ name }) => name))];
       return {
         producer,
-        wineNames: names.sort(byText).map((wineName) => ({
-          wineName,
+        names: names.sort(byText).map((name) => ({
+          name,
           wines: ofProducer
-            .filter((wine) => wine.wineName === wineName)
+            .filter((wine) => wine.name === name)
             .sort(byVintageThenSize),
         })),
       };

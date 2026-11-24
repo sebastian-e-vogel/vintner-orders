@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { winesFixture } from '@/fixtures/wines';
+import { winesFixture } from './testData';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 import { LastTimeCard } from './LastTimeCard';
 import type { LastTime, LastTimeItem } from './lastTime';

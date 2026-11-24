@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/Button';
 import { focusOnMount } from './focusHelpers';
 import { policyLabel } from './RequestPanel';
 import type { AnsweredSave } from './saveResult';
-import { describeWine, type Wine } from './wine';
+import type { Wine } from '@vintner/contracts';
+import { describeWine } from './wine';
 
 type OutcomeActions = {
   onBackToEdit: (event: React.MouseEvent<HTMLButtonElement>) => void;

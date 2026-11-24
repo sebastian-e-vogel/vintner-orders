@@ -18,7 +18,7 @@ describe('describeWine', () => {
     id: 'w',
     sku: 'S',
     producer: 'Bellerive',
-    wineName: 'Rosato',
+    name: 'Rosato',
     region: 'Tuscany',
     vintage: null,
     sizeMl: 1500,

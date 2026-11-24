@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { UsualContact } from './UsualContact';
 import type { CallerErrors } from './callerValidation';
-import type { Customer } from './customer';
+import type { Customer } from '@vintner/contracts';
 
 type CallerSectionProps = {
   customers: Customer[];
@@ -33,6 +33,7 @@ export function CallerSection({
   onPhoneChange,
 }: CallerSectionProps) {
   const customer = customers.find(({ id }) => id === customerId);
+  const hasCustomers = customers.length > 0;
 
   return (
     <section
@@ -52,18 +53,30 @@ export function CallerSection({
         Who&apos;s calling?
       </h2>
       <div className="grid gap-4 md:grid-cols-3">
-        <Field id="caller-customer" label="Customer" error={errors.customer}>
+        <Field
+          id="caller-customer"
+          label="Customer"
+          help={
+            hasCustomers
+              ? undefined
+              : 'There are no customers yet, so an order request cannot be taken.'
+          }
+          error={errors.customer}
+        >
           {(controlProps) => (
             <Select
               {...controlProps}
               ref={customerRef}
               value={customerId}
+              disabled={!hasCustomers}
               onChange={(event) => onCustomerChange(event.target.value)}
             >
-              <option value="">Choose a customer…</option>
-              {customers.map(({ id, companyName }) => (
+              <option value="">
+                {hasCustomers ? 'Choose a customer…' : 'No customers available'}
+              </option>
+              {customers.map(({ id, name }) => (
                 <option key={id} value={id}>
-                  {companyName}
+                  {name}
                 </option>
               ))}
             </Select>

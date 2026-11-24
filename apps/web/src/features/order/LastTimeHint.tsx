@@ -1,4 +1,5 @@
-import { describeWine, type Wine } from './wine';
+import type { Wine } from '@vintner/contracts';
+import { describeWine } from './wine';
 
 type LastTimeHintProps = {
   wine: Wine;

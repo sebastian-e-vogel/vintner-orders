@@ -10,7 +10,7 @@ import {
 } from './groupByProducer';
 import type { GoTo } from './goTo';
 import { ProducerGroupCard } from './ProducerGroupCard';
-import type { Wine } from './wine';
+import type { Wine } from '@vintner/contracts';
 
 type WineSectionProps = {
   wines: Wine[];

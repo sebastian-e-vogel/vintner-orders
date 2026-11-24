@@ -7,7 +7,7 @@ import { ReadBack } from './ReadBack';
 import { Actions, SaveOutcome } from './SaveOutcome';
 import type { ReviewSnapshot } from './reviewSnapshot';
 import type { AnsweredSave } from './saveResult';
-import type { Wine } from './wine';
+import type { Wine } from '@vintner/contracts';
 
 export type ReviewPhase =
   | { kind: 'review' }

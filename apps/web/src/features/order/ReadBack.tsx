@@ -42,7 +42,7 @@ export function ReadBack({ snapshot, isDimmed = false }: ReadBackProps) {
             >
               <span className="font-bold">{quantityText}</span>
               <span>
-                {wine.producer} {wine.wineName} {formatVintage(wine.vintage)}{' '}
+                {wine.producer} {wine.name} {formatVintage(wine.vintage)}{' '}
                 <span className="rounded-full border border-border px-2 py-0.5 text-xs">
                   {formatBottleSize(wine.sizeMl)}
                 </span>

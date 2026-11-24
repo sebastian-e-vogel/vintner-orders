@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { buildRequestLines } from './requestLines';
 import { buildReviewSnapshot } from './reviewSnapshot';
-import { winesFixture } from '@/fixtures/wines';
+import { winesFixture } from './testData';
 
 it('builds the input from the draft and trimmed values for the read-back', () => {
   const [first, second] = winesFixture;

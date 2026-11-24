@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { buildRequestLines, summarizeRequest } from './requestLines';
-import type { Wine } from './wine';
+import type { Wine } from '@vintner/contracts';
 
 const wine = (id: string, sizeMl: number, available: number): Wine => ({
   id,
   sku: id,
   producer: 'Aubert',
-  wineName: 'Pinot',
+  name: 'Pinot',
   region: 'Burgundy',
   vintage: 2021,
   sizeMl,
@@ -14,7 +14,7 @@ const wine = (id: string, sizeMl: number, available: number): Wine => ({
 });
 const a = wine('a', 750, 10);
 const b = wine('b', 1500, 2);
-const other = { ...wine('c', 750, 5), wineName: 'Chardonnay' };
+const other = { ...wine('c', 750, 5), name: 'Chardonnay' };
 const catalog = [a, b, other];
 
 describe('buildRequestLines blocking rule', () => {

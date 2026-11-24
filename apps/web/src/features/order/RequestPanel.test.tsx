@@ -4,13 +4,13 @@ import { describe, expect, it, vi } from 'vitest';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 import { RequestPanel } from './RequestPanel';
 import { buildRequestLines } from './requestLines';
-import type { Wine } from './wine';
+import type { Wine } from '@vintner/contracts';
 
 const wine = (id: string, sizeMl: number, available: number): Wine => ({
   id,
   sku: id,
   producer: 'Aubert',
-  wineName: 'Pinot',
+  name: 'Pinot',
   region: 'Burgundy',
   vintage: 2021,
   sizeMl,

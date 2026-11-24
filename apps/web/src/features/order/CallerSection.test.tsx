@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { CallerSection } from './CallerSection';
 import type { CallerErrors } from './callerValidation';
-import { customersFixture } from '@/fixtures/customers';
+import { customersFixture } from './testData';
 
 const [bellavista] = customersFixture;
 
@@ -47,7 +47,7 @@ describe('CallerSection', () => {
     const options = screen.getAllByRole('option');
     expect(options[0]).toHaveTextContent('Choose a customer…');
     expect(options.slice(1).map((o) => o.textContent)).toEqual(
-      customersFixture.map((c) => c.companyName),
+      customersFixture.map((c) => c.name),
     );
   });
 
@@ -128,5 +128,15 @@ describe('CallerSection', () => {
     expect(screen.getByLabelText('Caller phone')).toHaveAccessibleDescription(
       /At least 7 digits\. Phone number needs/,
     );
+  });
+
+  it('explains that there are no customers and disables the select', () => {
+    renderSection({ customers: [] });
+    const select = screen.getByLabelText('Customer');
+    expect(select).toBeDisabled();
+    expect(
+      screen.getByRole('option', { name: 'No customers available' }),
+    ).toBeInTheDocument();
+    expect(select).toHaveAccessibleDescription(/no customers yet/);
   });
 });

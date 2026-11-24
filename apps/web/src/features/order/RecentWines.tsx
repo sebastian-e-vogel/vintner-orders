@@ -4,7 +4,8 @@ import {
   isStrictBlocked,
   type AvailabilityLevel,
 } from './availability';
-import { formatBottleSize, formatVintage, type Wine } from './wine';
+import type { Wine } from '@vintner/contracts';
+import { formatBottleSize, formatVintage } from './wine';
 
 type RecentWinesProps = {
   // Already resolved and ordered newest first.
@@ -49,7 +50,7 @@ export function RecentWines({
             const isBlocked =
               isStrictBlocked(wine.available, policy) && !isInRequest;
             const availability = describeAvailability(wine.available);
-            const name = `${wine.producer} ${wine.wineName} ${formatVintage(wine.vintage)}`;
+            const name = `${wine.producer} ${wine.name} ${formatVintage(wine.vintage)}`;
             const size = formatBottleSize(wine.sizeMl);
             const label = isInRequest
               ? `${name}, ${size}, already in this request`

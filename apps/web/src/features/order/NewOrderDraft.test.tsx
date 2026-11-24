@@ -1,9 +1,9 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { customersFixture } from '@/fixtures/customers';
+import { customersFixture } from './testData';
 import { lastTimeFixture } from '@/fixtures/lastTime';
-import { winesFixture } from '@/fixtures/wines';
+import { winesFixture } from './testData';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 import { NewOrderDraft } from './NewOrderDraft';
 
@@ -466,6 +466,6 @@ describe('NewOrderDraft request panel', () => {
 
   it('names the chosen customer in the panel', () => {
     renderCaller(bellavista.id);
-    expect(within(panel()).getByText(bellavista.companyName)).toBeVisible();
+    expect(within(panel()).getByText(bellavista.name)).toBeVisible();
   });
 });

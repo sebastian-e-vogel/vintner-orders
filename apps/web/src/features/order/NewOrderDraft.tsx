@@ -11,7 +11,7 @@ import { buildReviewSnapshot, type ReviewSnapshot } from './reviewSnapshot';
 import { isAnswered, type OnSave, type SaveResult } from './saveResult';
 import { useReviewShortcut } from './useReviewShortcut';
 import { isStrictBlocked } from './availability';
-import type { Customer } from './customer';
+import type { Customer } from '@vintner/contracts';
 import type { GoTo } from './goTo';
 import { addedMessage, type LastTime, type SkippedCounts } from './lastTime';
 import { LastTimeCard } from './LastTimeCard';
@@ -20,7 +20,8 @@ import { RequestPanel } from './RequestPanel';
 import { buildRequestLines } from './requestLines';
 import { allProducers } from './groupByProducer';
 import { WineSection } from './WineSection';
-import { describeWine, type Wine } from './wine';
+import type { Wine } from '@vintner/contracts';
+import { describeWine } from './wine';
 
 type NewOrderDraftProps = {
   customers: Customer[];
@@ -155,7 +156,7 @@ export function NewOrderDraft({
     setFlow({
       snapshot: buildReviewSnapshot({
         customerId: chosenId,
-        customerName: chosenCustomer?.companyName ?? '',
+        customerName: chosenCustomer?.name ?? '',
         name,
         phone,
         notes,
@@ -304,7 +305,7 @@ export function NewOrderDraft({
         />
         {chosenCustomer && (
           <LastTimeCard
-            customerName={chosenCustomer.companyName}
+            customerName={chosenCustomer.name}
             isLoading={isPending}
             last={lastTime}
             lines={lines}
@@ -348,7 +349,7 @@ export function NewOrderDraft({
           className="min-[860px]:sticky min-[860px]:top-4 min-[860px]:col-start-2 min-[860px]:row-span-2 min-[860px]:row-start-1 min-[860px]:max-h-[calc(100vh-2rem)] min-[860px]:overflow-y-auto min-[860px]:[scrollbar-width:thin] min-[1240px]:col-start-3 min-[1240px]:row-span-1"
         >
           <RequestPanel
-            customerName={chosenCustomer?.companyName}
+            customerName={chosenCustomer?.name}
             lines={requestLines}
             policy={policy}
             notes={notes}

@@ -52,7 +52,7 @@ export function LastTimeItemRow({
         <span className="flex flex-wrap items-center gap-2">
           <span className="font-medium">{quantity} ×</span>
           <span>
-            {wine.producer} {wine.wineName}{' '}
+            {wine.producer} {wine.name}{' '}
             {wine.vintage === null ? (
               <abbr title={describeVintage(null)}>{formatVintage(null)}</abbr>
             ) : (
