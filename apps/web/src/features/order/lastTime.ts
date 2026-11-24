@@ -1,29 +1,17 @@
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 import { isStrictBlocked } from './availability';
-import type { Wine } from '@vintner/contracts';
+import type { LastTime, Wine } from '@vintner/contracts';
 import { describeWine } from './wine';
 
-// A wine as the server sends it with a last-time item.
-export type LastTimeWine = Omit<Wine, 'sku'> & { discontinued: boolean };
+export type LastTimeItem = LastTime['items'][number];
 
-export type LastTimeItem = { wine: LastTimeWine; quantity: number };
-
-// The customer's latest order or still-pending saved request, chosen by the server.
-export type LastTime = {
-  date: string;
-  items: LastTimeItem[];
-} & (
-  { kind: 'order'; repName?: string } | { kind: 'request'; contactName: string }
-);
-
-export type ItemState = 'addable' | 'in-request' | 'blocked' | 'discontinued';
+export type ItemState = 'addable' | 'in-request' | 'blocked';
 
 export function itemState(
   { wine }: LastTimeItem,
   lines: Record<string, string>,
   policy: InventoryPolicy,
 ): ItemState {
-  if (wine.discontinued) return 'discontinued';
   if (lines[wine.id] !== undefined) return 'in-request';
   return isStrictBlocked(wine.available, policy) ? 'blocked' : 'addable';
 }
@@ -32,7 +20,7 @@ export type AddAllSummary = {
   total: number;
   addableIds: string[];
   inRequest: number;
-  // Strict-blocked and discontinued wines.
+  // Strict-blocked wines.
   blocked: number;
 };
 

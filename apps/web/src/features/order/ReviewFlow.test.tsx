@@ -41,6 +41,7 @@ function setup(
       wines={winesFixture}
       recentWines={[]}
       policy={policy}
+      lastTime={null}
       onSave={onSave}
     />,
   );

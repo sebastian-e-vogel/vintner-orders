@@ -4,38 +4,30 @@ import { describe, expect, it, vi } from 'vitest';
 import { winesFixture } from './testData';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 import { LastTimeCard } from './LastTimeCard';
-import type { LastTime, LastTimeItem } from './lastTime';
+import type { LastTime } from '@vintner/contracts';
+import type { LastTimeItem } from './lastTime';
 
-const item = (
-  wineId: string,
-  quantity: number,
-  discontinued = false,
-): LastTimeItem => {
+const item = (wineId: string, quantity: number): LastTimeItem => {
   const wine = winesFixture.find(({ id }) => id === wineId)!;
-  return { wine: { ...wine, discontinued }, quantity };
+  return { wine, quantity };
 };
 
 const order: LastTime = {
   kind: 'order',
-  date: '2026-11-10T14:40:00.000Z',
-  repName: 'Tom Bennett',
-  items: [
-    item('wine_03', 12),
-    item('wine_19', 6),
-    item('wine_06', 3),
-    item('wine_08', 2, true),
-  ],
+  at: '2026-11-10T14:40:00.000Z',
+  salesRepName: 'Tom Bennett',
+  items: [item('wine_03', 12), item('wine_19', 6), item('wine_06', 3)],
 };
 const pending: LastTime = {
   kind: 'request',
-  date: '2026-11-17T11:20:00.000Z',
+  at: '2026-11-17T11:20:00.000Z',
   contactName: 'Priya Nair',
   items: [item('wine_03', 4)],
 };
 
 function setup(
   props: {
-    last?: LastTime;
+    last?: LastTime | null;
     isLoading?: boolean;
     policy?: InventoryPolicy;
     lines?: Record<string, string>;
@@ -47,7 +39,7 @@ function setup(
     <LastTimeCard
       customerName="Harbour Wine Bar"
       isLoading={props.isLoading ?? false}
-      last={props.last}
+      last={props.last ?? null}
       lines={props.lines ?? {}}
       policy={props.policy ?? 'flexible'}
       onAdd={onAdd}
@@ -98,11 +90,6 @@ describe('LastTimeCard states', () => {
     expect(status).toHaveAttribute('aria-busy', 'true');
     expect(status.querySelector('[aria-hidden="true"]')).toBeInTheDocument();
     expect(screen.queryByRole('list')).not.toBeInTheDocument();
-  });
-
-  it('shows a dash when an order has no rep name', () => {
-    setup({ last: { ...order, repName: undefined } as LastTime });
-    expect(screen.getByText(/· taken by -$/)).toBeVisible();
   });
 });
 
@@ -173,21 +160,6 @@ describe('LastTimeCard items', () => {
     expect(screen.queryByText(/will be flagged short/)).not.toBeInTheDocument();
   });
 
-  it('shows a discontinued wine in full as a disabled card', async () => {
-    const { onAdd, onGoTo, user } = setup({ last: order });
-    const row = within(list()).getAllByRole('listitem')[3];
-    expect(row).toHaveTextContent('2 ×');
-    expect(row).toHaveTextContent('Bellerive Brunello di Montalcino 2020');
-    expect(within(row).getByText(/has been discontinued/)).toHaveClass(
-      'text-muted',
-    );
-    const card = within(row).getByRole('button');
-    expect(card).toHaveAttribute('aria-disabled', 'true');
-    await user.click(card);
-    expect(onAdd).not.toHaveBeenCalled();
-    expect(onGoTo).not.toHaveBeenCalled();
-  });
-
   it('has one button per card and no nested buttons', () => {
     setup({ last: order });
     for (const row of within(list()).getAllByRole('listitem')) {
@@ -205,7 +177,7 @@ describe('LastTimeCard Add all', () => {
       'from last time',
       {
         inRequest: 1,
-        blocked: 1,
+        blocked: 0,
       },
     );
   });

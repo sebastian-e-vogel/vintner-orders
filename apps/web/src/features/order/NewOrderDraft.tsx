@@ -13,7 +13,8 @@ import { useReviewShortcut } from './useReviewShortcut';
 import { isStrictBlocked } from './availability';
 import type { Customer } from '@vintner/contracts';
 import type { GoTo } from './goTo';
-import { addedMessage, type LastTime, type SkippedCounts } from './lastTime';
+import type { LastTime } from '@vintner/contracts';
+import { addedMessage, type SkippedCounts } from './lastTime';
 import { LastTimeCard } from './LastTimeCard';
 import { RecentWines } from './RecentWines';
 import { RequestPanel } from './RequestPanel';
@@ -30,7 +31,7 @@ type NewOrderDraftProps = {
   recentWines: Wine[];
   policy: InventoryPolicy;
   // undefined means the customer has no orders or pending requests.
-  lastTime?: LastTime;
+  lastTime: LastTime | null;
   // Saves the request. Not connected yet: without it the dialog cannot save.
   onSave?: OnSave;
 };

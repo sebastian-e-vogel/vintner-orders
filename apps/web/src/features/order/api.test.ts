@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getCustomers, getRecentWines, getWines } from './api';
+import { getCustomers, getLastTime, getRecentWines, getWines } from './api';
 
 const fetchMock = vi.fn();
 
@@ -78,5 +78,45 @@ describe.each([
   ])('rejects a malformed response: %s', async (_case, body) => {
     respond(body);
     await expect(read()).rejects.toThrow();
+  });
+});
+
+describe('getLastTime', () => {
+  const customerId = customer.id;
+  const items = [{ quantity: 6, wine }];
+  const order = {
+    kind: 'order',
+    at: '2026-11-10T14:40:00.000Z',
+    salesRepName: 'Tom Bennett',
+    items,
+  };
+  const request = {
+    kind: 'request',
+    at: '2026-11-17T11:20:00.000Z',
+    contactName: 'Priya Nair',
+    items,
+  };
+
+  it.each([
+    ['null', null],
+    ['an order', order],
+    ['a request', request],
+  ])('returns %s and never caches', async (_name, body) => {
+    respond(body);
+    await expect(getLastTime(customerId)).resolves.toEqual(body);
+    expect(fetchMock).toHaveBeenCalledWith(
+      `http://api.test/customers/${customerId}/last-time`,
+      expect.objectContaining({ cache: 'no-store' }),
+    );
+  });
+
+  it('rejects a malformed response', async () => {
+    respond({ ...order, salesRepName: undefined });
+    await expect(getLastTime(customerId)).rejects.toThrow();
+  });
+
+  it.each([404, 500])('rejects a %i response', async (status) => {
+    respond({}, status);
+    await expect(getLastTime(customerId)).rejects.toThrow(String(status));
   });
 });

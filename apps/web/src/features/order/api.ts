@@ -1,6 +1,10 @@
 import 'server-only';
 
-import { customerListSchema, wineListSchema } from '@vintner/contracts';
+import {
+  customerListSchema,
+  lastTimeResponseSchema,
+  wineListSchema,
+} from '@vintner/contracts';
 import { apiFetch } from '@/lib/api';
 
 export function getCustomers() {
@@ -14,4 +18,8 @@ export function getWines() {
 // Most recent first.
 export function getRecentWines() {
   return apiFetch('/recent-wines', wineListSchema);
+}
+
+export function getLastTime(customerId: string) {
+  return apiFetch(`/customers/${customerId}/last-time`, lastTimeResponseSchema);
 }

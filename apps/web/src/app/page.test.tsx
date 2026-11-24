@@ -4,7 +4,12 @@ import {
   customersFixture as customers,
   winesFixture as wines,
 } from '@/features/order/testData';
-import { getCustomers, getRecentWines, getWines } from '@/features/order/api';
+import {
+  getCustomers,
+  getLastTime,
+  getRecentWines,
+  getWines,
+} from '@/features/order/api';
 import Home from './page';
 
 vi.mock('@/features/settings/api', () => ({
@@ -18,6 +23,7 @@ vi.mock('@/features/order/api', () => ({
   getCustomers: vi.fn(async () => customers),
   getWines: vi.fn(async () => wines),
   getRecentWines: vi.fn(async () => wines.slice(0, 2)),
+  getLastTime: vi.fn(async () => null),
 }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ replace: vi.fn() }) }));
 
@@ -55,8 +61,10 @@ describe('Home page', () => {
     ).toBeInTheDocument();
   });
 
-  it('has no last-time card with nothing selected', async () => {
+  it('has no last-time card with nothing selected, and does not read it', async () => {
+    vi.mocked(getLastTime).mockClear();
     await renderHome({});
+    expect(getLastTime).not.toHaveBeenCalled();
     expect(screen.queryByText('Last time')).not.toBeInTheDocument();
   });
 
@@ -64,8 +72,10 @@ describe('Home page', () => {
     ['unknown', { customer: 'nope' }],
     ['repeated', { customer: ['cus_harbour', 'cus_oakroom'] }],
   ])('selects nothing for a %s id', async (_, params) => {
+    vi.mocked(getLastTime).mockClear();
     await renderHome(params);
     expect(screen.getByLabelText('Customer')).toHaveValue('');
+    expect(getLastTime).not.toHaveBeenCalled();
   });
 
   it('shows the empty states when the API has no data', async () => {
@@ -76,6 +86,13 @@ describe('Home page', () => {
     expect(screen.getByLabelText('Customer')).toBeDisabled();
     expect(screen.getByText('No wines to show.')).toBeVisible();
     expect(screen.getByText("You haven't added any wines yet.")).toBeVisible();
+  });
+
+  it('rejects when the last-time read fails', async () => {
+    vi.mocked(getLastTime).mockRejectedValueOnce(new Error('API down'));
+    await expect(
+      Home({ searchParams: Promise.resolve({ customer: 'cus_harbour' }) }),
+    ).rejects.toThrow('API down');
   });
 
   it('rejects when a read fails, so error.tsx takes over', async () => {
