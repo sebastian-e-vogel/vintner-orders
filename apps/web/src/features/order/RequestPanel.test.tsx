@@ -24,15 +24,17 @@ function setup(
   customerName?: string,
 ) {
   const onRemove = vi.fn();
+  const onGoTo = vi.fn();
   render(
     <RequestPanel
       customerName={customerName}
       lines={buildRequestLines(catalog, lines, policy)}
       policy={policy}
+      onGoTo={onGoTo}
       onRemove={onRemove}
     />,
   );
-  return { onRemove };
+  return { onRemove, onGoTo };
 }
 
 describe('RequestPanel', () => {
@@ -49,18 +51,22 @@ describe('RequestPanel', () => {
     expect(screen.getByText('Harbour Wine Bar')).toBeInTheDocument();
   });
 
-  it('links each line to its wine row with an accessible name', () => {
-    setup({ a: '3', b: '' });
+  it('gives each line a button with an accessible name that goes to its wine', async () => {
+    const { onGoTo } = setup({ a: '3', b: '' });
     const list = screen.getByRole('list', { name: 'Wines in this request' });
-    const link = within(list).getByRole('link', {
-      name: '3 of Aubert Pinot 2021, 750 ml. Go to its row.',
-    });
-    expect(link).toHaveAttribute('href', '#wine-row-a');
-    expect(
-      within(list).getByRole('link', {
+    expect(within(list).queryByRole('link')).not.toBeInTheDocument();
+    await userEvent.click(
+      within(list).getByRole('button', {
+        name: '3 of Aubert Pinot 2021, 750 ml. Go to its row.',
+      }),
+    );
+    expect(onGoTo).toHaveBeenCalledWith('a');
+    await userEvent.click(
+      within(list).getByRole('button', {
         name: 'No quantity of Aubert Pinot 2021, 1.5 L. Go to its row.',
       }),
-    ).toBeInTheDocument();
+    );
+    expect(onGoTo).toHaveBeenLastCalledWith('b');
     expect(within(list).getByText('—')).toBeInTheDocument();
   });
 
@@ -105,7 +111,7 @@ describe('RequestPanel', () => {
 
 describe('RequestPanel line level', () => {
   const lineOf = (name: RegExp) =>
-    screen.getByRole('link', { name }).closest('li');
+    screen.getByRole('button', { name }).closest('li');
 
   it('colours each line by its level', () => {
     setup({ a: '3', b: '' });

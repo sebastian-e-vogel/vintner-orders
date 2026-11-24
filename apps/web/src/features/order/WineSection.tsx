@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { Field } from '@/components/ui/Field';
 import { Select } from '@/components/ui/Select';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
@@ -9,6 +8,7 @@ import {
   groupByProducer,
   producerOptions,
 } from './groupByProducer';
+import type { GoTo } from './goTo';
 import { ProducerGroupCard } from './ProducerGroupCard';
 import type { Wine } from './wine';
 
@@ -19,6 +19,9 @@ type WineSectionProps = {
   lastTimeQuantities: Record<string, number>;
   // Latest add message, announced to screen readers.
   statusMessage: string;
+  producer: string;
+  goTo?: GoTo;
+  onProducerChange: (producer: string) => void;
   onQuantityChange: (wineId: string, quantityText: string) => void;
 };
 
@@ -28,9 +31,11 @@ export function WineSection({
   policy,
   lastTimeQuantities,
   statusMessage,
+  producer,
+  goTo,
+  onProducerChange,
   onQuantityChange,
 }: WineSectionProps) {
-  const [producer, setProducer] = useState(allProducers);
   const groups = groupByProducer(wines, producer);
 
   return (
@@ -60,7 +65,7 @@ export function WineSection({
             <Select
               {...controlProps}
               value={producer}
-              onChange={(event) => setProducer(event.target.value)}
+              onChange={(event) => onProducerChange(event.target.value)}
             >
               <option value={allProducers}>All producers</option>
               {producerOptions(wines).map((name) => (
@@ -85,6 +90,7 @@ export function WineSection({
             lines={lines}
             policy={policy}
             lastTimeQuantities={lastTimeQuantities}
+            goTo={goTo}
             onQuantityChange={onQuantityChange}
           />
         ))

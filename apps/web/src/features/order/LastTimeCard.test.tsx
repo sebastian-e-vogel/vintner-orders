@@ -42,6 +42,7 @@ function setup(
   } = {},
 ) {
   const onAdd = vi.fn();
+  const onGoTo = vi.fn();
   render(
     <LastTimeCard
       customerName="Harbour Wine Bar"
@@ -50,9 +51,10 @@ function setup(
       lines={props.lines ?? {}}
       policy={props.policy ?? 'flexible'}
       onAdd={onAdd}
+      onGoTo={onGoTo}
     />,
   );
-  return { onAdd, user: userEvent.setup() };
+  return { onAdd, onGoTo, user: userEvent.setup() };
 }
 
 const list = () => screen.getByRole('list', { name: 'Wines last time' });
@@ -125,20 +127,33 @@ describe('LastTimeCard items', () => {
     expect(onAdd).toHaveBeenCalledWith(['wine_03']);
   });
 
-  it('shows In request instead of Add for wines already in the request', () => {
-    setup({ last: order, lines: { wine_03: '' } });
+  it('makes a wine already in the request a button that goes to its row', async () => {
+    const { onAdd, onGoTo, user } = setup({
+      last: order,
+      lines: { wine_03: '' },
+    });
     const first = within(list()).getAllByRole('listitem')[0];
     expect(within(first).getByText('In request')).toBeVisible();
-    expect(within(first).queryByRole('button')).not.toBeInTheDocument();
+    await user.click(
+      within(first).getByRole('button', {
+        name: 'Go to Domaine Aubert Pinot Noir Reserve 2022, 750 ml, already in this request, last time 12',
+      }),
+    );
+    expect(onGoTo).toHaveBeenCalledWith('wine_03');
+    expect(onAdd).not.toHaveBeenCalled();
   });
 
-  it('under strict, blocks an out-of-stock wine with a danger note', () => {
-    setup({ last: order, policy: 'strict' });
+  it('under strict, keeps an out-of-stock wine visibly disabled with a danger note', async () => {
+    const { onAdd, onGoTo, user } = setup({ last: order, policy: 'strict' });
     const row = within(list()).getAllByRole('listitem')[2];
     expect(
       within(row).getByText(/Out of stock — can't add \(strict\)/),
     ).toHaveClass('text-danger');
-    expect(within(row).getByRole('button', { name: /^Add/ })).toBeDisabled();
+    const card = within(row).getByRole('button');
+    expect(card).toHaveAttribute('aria-disabled', 'true');
+    await user.click(card);
+    expect(onAdd).not.toHaveBeenCalled();
+    expect(onGoTo).not.toHaveBeenCalled();
   });
 
   it('under flexible, warns about an out-of-stock wine but allows adding', () => {
@@ -147,7 +162,10 @@ describe('LastTimeCard items', () => {
     expect(
       within(row).getByText('Out of stock — will be flagged short'),
     ).toHaveClass('text-warning');
-    expect(within(row).getByRole('button', { name: /^Add/ })).toBeEnabled();
+    expect(within(row).getByRole('button', { name: /^Add/ })).toHaveAttribute(
+      'aria-disabled',
+      'false',
+    );
   });
 
   it('hides the flexible out-of-stock note once the wine is in the request', () => {
@@ -155,15 +173,26 @@ describe('LastTimeCard items', () => {
     expect(screen.queryByText(/will be flagged short/)).not.toBeInTheDocument();
   });
 
-  it('shows a discontinued wine in full, without an Add button', () => {
-    setup({ last: order });
+  it('shows a discontinued wine in full as a disabled card', async () => {
+    const { onAdd, onGoTo, user } = setup({ last: order });
     const row = within(list()).getAllByRole('listitem')[3];
     expect(row).toHaveTextContent('2 ×');
     expect(row).toHaveTextContent('Bellerive Brunello di Montalcino 2020');
     expect(within(row).getByText(/has been discontinued/)).toHaveClass(
       'text-muted',
     );
-    expect(within(row).queryByRole('button')).not.toBeInTheDocument();
+    const card = within(row).getByRole('button');
+    expect(card).toHaveAttribute('aria-disabled', 'true');
+    await user.click(card);
+    expect(onAdd).not.toHaveBeenCalled();
+    expect(onGoTo).not.toHaveBeenCalled();
+  });
+
+  it('has one button per card and no nested buttons', () => {
+    setup({ last: order });
+    for (const row of within(list()).getAllByRole('listitem')) {
+      expect(within(row).getAllByRole('button')).toHaveLength(1);
+    }
   });
 });
 

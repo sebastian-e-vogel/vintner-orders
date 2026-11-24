@@ -8,7 +8,17 @@ import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 import { NewOrderDraft } from './NewOrderDraft';
 
 const replace = vi.fn();
+const scrollIntoView = vi.fn();
+// jsdom has neither; reduced motion is off unless a test turns it on.
+const matchMedia = vi.fn(() => ({ matches: false }));
+Element.prototype.scrollIntoView = scrollIntoView;
+window.matchMedia = matchMedia as never;
 vi.mock('next/navigation', () => ({ useRouter: () => ({ replace }) }));
+
+beforeEach(() => {
+  replace.mockClear();
+  scrollIntoView.mockClear();
+});
 
 const [bellavista, harbour, lindqvist] = customersFixture;
 
@@ -41,8 +51,6 @@ const nameField = () => screen.getByLabelText('Caller name');
 const phoneField = () => screen.getByLabelText('Caller phone');
 
 describe('NewOrderDraft', () => {
-  beforeEach(() => replace.mockClear());
-
   it('puts the chosen customer in the URL without scrolling', async () => {
     const { user } = renderCaller();
     await user.selectOptions(screen.getByLabelText('Customer'), harbour.id);
@@ -119,7 +127,7 @@ describe('NewOrderDraft last time', () => {
     ).toBeVisible();
   });
 
-  it('adds one wine without a quantity, announces it and does not move focus', async () => {
+  it('adds one wine without a quantity, announces it and goes to its quantity', async () => {
     const { user } = renderCaller(bellavista.id);
     const add = screen.getByRole('button', { name: /^Add .*Brunello.*2020/ });
     await user.click(add);
@@ -133,7 +141,60 @@ describe('NewOrderDraft last time', () => {
       'Added Bellerive Brunello di Montalcino 2020, 750 ml. Type the quantity.',
     );
     expect(screen.getByText('In request', { selector: 'span' })).toBeVisible();
-    expect(add).not.toHaveFocus();
+    expect(
+      qty(/Quantity for Bellerive Brunello di Montalcino 2020/),
+    ).toHaveFocus();
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      block: 'center',
+      behavior: 'smooth',
+    });
+  });
+
+  it('clicking a last-time card already in the request goes to its row without a message', async () => {
+    const { user } = renderCaller(bellavista.id);
+    await user.click(
+      screen.getByRole('button', { name: /^Add .*Brunello.*2020/ }),
+    );
+    await user.click(screen.getByLabelText('Show'));
+    await user.click(
+      screen.getByRole('button', { name: /^Go to .*Brunello.*2020/ }),
+    );
+    expect(
+      qty(/Quantity for Bellerive Brunello di Montalcino 2020/),
+    ).toHaveFocus();
+    expect(catalogStatus()).toBeEmptyDOMElement();
+  });
+
+  it('goes to the first wine "Add all" added and highlights every row it touched', async () => {
+    const { user } = renderCaller(bellavista.id);
+    await user.click(screen.getByRole('button', { name: 'Add 3 wines' }));
+    expect(
+      qty(/Quantity for Bellerive Brunello di Montalcino 2020/),
+    ).toHaveFocus();
+    const highlighted = screen
+      .getAllByRole('textbox', { name: /^Quantity for/ })
+      .filter((input) =>
+        input.closest('li')?.className.includes('animate-row-highlight'),
+      );
+    expect(highlighted).toHaveLength(3);
+  });
+
+  it('also goes through a last-time wine that was already in the request', async () => {
+    const { user } = renderCaller(bellavista.id, 'flexible');
+    await user.type(
+      qty(/Quantity for Bellerive Brunello di Montalcino 2020/),
+      '7',
+    );
+    await user.click(screen.getByRole('button', { name: 'Add 3 wines' }));
+    expect(
+      qty(/Quantity for Bellerive Brunello di Montalcino 2020/),
+    ).toHaveFocus();
+    const highlighted = screen
+      .getAllByRole('textbox', { name: /^Quantity for/ })
+      .filter((input) =>
+        input.closest('li')?.className.includes('animate-row-highlight'),
+      );
+    expect(highlighted).toHaveLength(4);
   });
 
   it('adds all under strict, skipping the blocked and missing wines', async () => {
@@ -227,32 +288,130 @@ describe('NewOrderDraft recent wines', () => {
     return userEvent.setup();
   }
 
-  it('adds a picked wine without a quantity and shows the added message', async () => {
+  const rowOf = (input: HTMLElement) => input.closest('li')!;
+
+  it('goes to a picked wine without adding a line, then typing adds it', async () => {
     const user = renderRecent();
     await user.click(
       screen.getByRole('button', { name: /^Enter quantity for/ }),
     );
+    const input = qty(/Quantity for Bellerive Brunello di Montalcino 2020/);
+    expect(input).toHaveFocus();
+    expect(input).toHaveValue('');
+    expect(rowOf(input)).toHaveClass('animate-row-highlight-b');
+    expect(rowOf(input)).toHaveClass('motion-reduce:animate-none');
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      block: 'center',
+      behavior: 'smooth',
+    });
     expect(
-      qty(/Quantity for Bellerive Brunello di Montalcino 2020/),
-    ).toHaveValue('');
+      screen.getByRole('button', { name: /^Enter quantity for/ }),
+    ).toBeVisible();
+    expect(screen.queryByText('Enter a quantity')).not.toBeInTheDocument();
     expect(catalogStatus()).toHaveTextContent(
-      'Added Bellerive Brunello di Montalcino 2020, 750 ml. Type the quantity.',
+      'Type the quantity for Bellerive Brunello di Montalcino 2020, 750 ml.',
     );
+    await user.keyboard('7');
+    expect(input).toHaveValue('7');
+    expect(
+      screen.getByRole('button', { name: /already in this request$/ }),
+    ).toBeVisible();
   });
 
-  it('reports a wine already in the request and does not move focus', async () => {
+  it('moves to a wine already in the request without a message', async () => {
     const user = renderRecent();
     const input = qty(/Quantity for Bellerive Brunello di Montalcino 2020/);
     await user.type(input, '7');
+    await user.click(screen.getByRole('combobox', { name: 'Show' }));
+    await user.click(
+      screen.getByRole('button', { name: /already in this request$/ }),
+    );
+    expect(input).toHaveFocus();
+    expect(input).toHaveValue('7');
+    expect(catalogStatus()).toBeEmptyDOMElement();
+  });
+
+  it('restarts the highlight when the same wine is picked again', async () => {
+    const user = renderRecent();
+    const chip = () =>
+      screen.getByRole('button', { name: /Brunello.*(Enter|already)|^Enter/ });
+    await user.click(chip());
+    const row = rowOf(
+      qty(/Quantity for Bellerive Brunello di Montalcino 2020/),
+    );
+    expect(row).toHaveClass('animate-row-highlight-b');
+    await user.click(chip());
+    expect(row).toHaveClass('animate-row-highlight-a');
+    await user.click(chip());
+    expect(row).toHaveClass('animate-row-highlight-b');
+  });
+
+  it('resets the producer filter when the picked wine is hidden, then focuses it', async () => {
+    const user = renderRecent();
+    await user.selectOptions(screen.getByLabelText('Show'), 'Domaine Aubert');
+    expect(
+      screen.queryByRole('textbox', { name: /Quantity for Bellerive/ }),
+    ).not.toBeInTheDocument();
+    await user.click(
+      screen.getByRole('button', { name: /^Enter quantity for/ }),
+    );
+    expect(screen.getByLabelText('Show')).toHaveValue('');
+    expect(
+      qty(/Quantity for Bellerive Brunello di Montalcino 2020/),
+    ).toHaveFocus();
+  });
+
+  it('keeps the filter when the picked wine is visible', async () => {
+    const user = renderRecent();
+    await user.selectOptions(screen.getByLabelText('Show'), brunello.producer);
+    await user.click(
+      screen.getByRole('button', { name: /^Enter quantity for/ }),
+    );
+    expect(screen.getByLabelText('Show')).toHaveValue(brunello.producer);
+  });
+
+  it('does not replay an old move when the filter changes later', async () => {
+    const user = renderRecent();
+    await user.click(
+      screen.getByRole('button', { name: /^Enter quantity for/ }),
+    );
+    await user.selectOptions(screen.getByLabelText('Show'), 'Domaine Aubert');
+    await user.selectOptions(screen.getByLabelText('Show'), '');
+    expect(screen.getByLabelText('Show')).toHaveFocus();
+  });
+
+  it('instant scroll under reduced motion', async () => {
+    matchMedia.mockReturnValueOnce({ matches: true });
+    const user = renderRecent();
+    await user.click(
+      screen.getByRole('button', { name: /^Enter quantity for/ }),
+    );
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      block: 'center',
+      behavior: 'instant',
+    });
+  });
+
+  it('does not move when the wine is out of stock under strict, and says why', async () => {
+    const outOfStock = winesFixture.find(({ available }) => available === 0)!;
+    render(
+      <NewOrderDraft
+        customers={customersFixture}
+        customerId=""
+        wines={winesFixture}
+        recentWines={[outOfStock]}
+        policy="strict"
+      />,
+    );
+    const user = userEvent.setup();
     const chip = screen.getByRole('button', {
-      name: /already in this request$/,
+      name: /can't add under strict policy$/,
     });
     await user.click(chip);
-    expect(input).toHaveValue('7');
-    expect(catalogStatus()).toHaveTextContent(
-      'Bellerive Brunello di Montalcino 2020, 750 ml is already in the request.',
-    );
     expect(chip).toHaveFocus();
+    expect(scrollIntoView).not.toHaveBeenCalled();
+    expect(catalogStatus()).toHaveTextContent(/can't be added/);
+    expect(screen.queryByText(/Type the quantity for/)).not.toBeInTheDocument();
   });
 });
 
@@ -260,12 +419,14 @@ describe('NewOrderDraft request panel', () => {
   const panel = () =>
     screen.getByRole('complementary', { name: 'This request' });
 
-  it('shows an added wine once, and removing it clears the row too', async () => {
+  it('shows an added wine once, and removing it clears the row, moves focus nowhere and leaves no message', async () => {
     const { user } = renderCaller(bellavista.id);
     const add = screen.getByRole('button', { name: /^Add .*Brunello.*2020/ });
     await user.click(add);
     expect(
-      within(panel()).getAllByRole('link', { name: /Brunello.*Go to its row/ }),
+      within(panel()).getAllByRole('button', {
+        name: /Brunello.*Go to its row/,
+      }),
     ).toHaveLength(1);
 
     await user.type(
@@ -279,9 +440,28 @@ describe('NewOrderDraft request panel', () => {
     expect(
       qty(/Quantity for Bellerive Brunello di Montalcino 2020/),
     ).toHaveValue('');
-    expect(catalogStatus()).toHaveTextContent(
-      'Removed Bellerive Brunello di Montalcino 2020, 750 ml from the request.',
+    expect(screen.getByLabelText('Show')).not.toHaveFocus();
+    expect(catalogStatus()).toBeEmptyDOMElement();
+    expect(
+      within(panel()).queryByRole('button', { name: /Undo/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('a panel line focuses its wine, resets a hiding filter and leaves the URL alone', async () => {
+    const { user } = renderCaller(bellavista.id);
+    await user.click(
+      screen.getByRole('button', { name: /^Add .*Brunello.*2020/ }),
     );
+    await user.selectOptions(screen.getByLabelText('Show'), 'Domaine Aubert');
+    await user.click(
+      within(panel()).getByRole('button', { name: /Brunello.*Go to its row/ }),
+    );
+    expect(screen.getByLabelText('Show')).toHaveValue('');
+    expect(
+      qty(/Quantity for Bellerive Brunello di Montalcino 2020/),
+    ).toHaveFocus();
+    expect(window.location.hash).toBe('');
+    expect(replace).not.toHaveBeenCalled();
   });
 
   it('names the chosen customer in the panel', () => {
