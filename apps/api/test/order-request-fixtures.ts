@@ -8,13 +8,13 @@ import {
 import { CURRENT_SALES_REP_ID } from '../src/sales-reps/current-sales-rep.js';
 import { InventoryPolicy } from '../src/database/entities/order-request.entity.js';
 
-// The only place that knows the wine columns, so the schema change in #47
-// (format to size_ml, region) is a one-line fix here.
+// The only place that knows the wine columns.
 const wineRow = (sku: string, available: number) => ({
   name: `Wine ${sku}`,
   producer: 'Conterno',
   vintage: 2019,
-  format: '750 ml',
+  region: 'Barolo',
+  sizeMl: 750,
   sku,
   available,
 });

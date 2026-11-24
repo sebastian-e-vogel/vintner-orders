@@ -45,7 +45,8 @@ describe('phase 1 schema constraints', () => {
       name: 'Barolo',
       producer: 'Conterno',
       vintage: 2019,
-      format: '750 ml',
+      region: 'Barolo',
+      sizeMl: 750,
       sku: `SKU-${randomUUID()}`,
       available: 10,
       ...overrides,
@@ -94,6 +95,19 @@ describe('phase 1 schema constraints', () => {
       driverError: { code: '23514' },
     });
     await expect(newWine({ available: 0 })).resolves.toBeDefined();
+  });
+
+  it('requires a region and a positive size in millilitres', async () => {
+    await expect(newWine({ region: null as never })).rejects.toMatchObject({
+      driverError: { code: '23502' },
+    });
+    await expect(newWine({ sizeMl: 0 })).rejects.toMatchObject({
+      driverError: { code: '23514' },
+    });
+    await expect(newWine({ sizeMl: -750 })).rejects.toMatchObject({
+      driverError: { code: '23514' },
+    });
+    await expect(newWine({ sizeMl: 375 })).resolves.toBeDefined();
   });
 
   it('rejects a duplicate idempotency key', async () => {
