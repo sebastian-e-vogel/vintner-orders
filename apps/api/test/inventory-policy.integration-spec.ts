@@ -5,6 +5,7 @@ import {
 import { InternalServerErrorException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { createDataSourceOptions } from '../src/database/database.config.js';
+import { Settings } from '../src/database/entities/index.js';
 import { InventoryPolicyService } from '../src/settings/inventory-policy.service.js';
 
 describe('inventory policy service', () => {
@@ -25,7 +26,7 @@ describe('inventory policy service', () => {
     );
     await dataSource.initialize();
     await dataSource.runMigrations();
-    service = new InventoryPolicyService(dataSource);
+    service = new InventoryPolicyService(dataSource.getRepository(Settings));
   });
 
   afterAll(async () => {
