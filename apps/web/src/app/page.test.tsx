@@ -2,6 +2,12 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import Home from './page';
 
+vi.mock('@/features/settings/api', () => ({
+  getInventoryPolicy: async () => ({
+    policy: 'strict',
+    changedAt: '2026-11-02T14:30:00.000Z',
+  }),
+}));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ replace: vi.fn() }) }));
 
 const renderHome = async (searchParams: Record<string, string | string[]>) =>

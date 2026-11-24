@@ -1,7 +1,7 @@
 import { PageHeading } from '@/components/PageHeading';
 import { NewOrderDraft } from '@/features/order/NewOrderDraft';
+import { getInventoryPolicy } from '@/features/settings/api';
 import { customersFixture } from '@/fixtures/customers';
-import { inventoryPolicyFixture } from '@/fixtures/inventoryPolicy';
 import { lastTimeFixture } from '@/fixtures/lastTime';
 import { recentWinesFixture } from '@/fixtures/recentWines';
 import { winesFixture } from '@/fixtures/wines';
@@ -15,6 +15,7 @@ export default async function Home({ searchParams }: HomeProps) {
   const customerId = customersFixture.some(({ id }) => id === customer)
     ? (customer as string)
     : '';
+  const { policy } = await getInventoryPolicy();
 
   return (
     <div data-wide>
@@ -28,7 +29,7 @@ export default async function Home({ searchParams }: HomeProps) {
         customerId={customerId}
         wines={winesFixture}
         recentWines={recentWinesFixture}
-        policy={inventoryPolicyFixture.currentPolicy}
+        policy={policy}
         lastTime={lastTimeFixture[customerId]}
       />
     </div>
