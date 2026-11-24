@@ -1,12 +1,16 @@
+import { connection } from 'next/server';
 import { PageHeading } from '@/components/PageHeading';
+import { getSavedRequests } from '@/features/requests/api';
 import { SavedRequestList } from '@/features/requests/SavedRequestList';
-import { getSavedRequests } from '@/fixtures/savedRequests';
 
-export default function RequestsPage() {
+export default async function RequestsPage() {
+  await connection();
+  const requests = await getSavedRequests();
+
   return (
     <>
       <PageHeading>Saved requests</PageHeading>
-      <SavedRequestList requests={getSavedRequests()} />
+      <SavedRequestList requests={requests} />
     </>
   );
 }

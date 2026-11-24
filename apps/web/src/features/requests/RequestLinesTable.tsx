@@ -42,7 +42,7 @@ export function RequestLinesTable({ request }: RequestLinesTableProps) {
               </div>
               <div className="text-muted">{line.region}</div>
             </td>
-            <td className="py-2 pr-4">{line.vintage}</td>
+            <td className="py-2 pr-4">{line.vintage ?? 'NV'}</td>
             <td className="py-2 pr-4">
               <span className="rounded-full border border-border px-2 py-0.5 text-xs">
                 {line.size}

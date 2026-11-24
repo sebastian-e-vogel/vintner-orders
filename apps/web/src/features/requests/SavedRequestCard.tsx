@@ -8,7 +8,7 @@ type SavedRequestCardProps = {
 };
 
 export function SavedRequestCard({ request }: SavedRequestCardProps) {
-  const headingId = `request-${request.reference}`;
+  const headingId = `request-${request.id}`;
   const shortCount = countShortLines(request);
   const policyLabel = request.policy === 'strict' ? 'Strict' : 'Flexible';
 
@@ -53,7 +53,7 @@ export function SavedRequestCard({ request }: SavedRequestCardProps) {
         </div>
         <div>
           <dt className="text-sm text-muted">Taken by</dt>
-          <dd>{request.repId}</dd>
+          <dd>{request.salesRepName}</dd>
         </div>
         <div>
           <dt className="text-sm text-muted">Saved under</dt>

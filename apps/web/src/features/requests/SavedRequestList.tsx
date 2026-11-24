@@ -1,5 +1,5 @@
 import { EmptyRequests } from './EmptyRequests';
-import { newestFirst, pluralize, type SavedRequest } from './savedRequest';
+import { pluralize, type SavedRequest } from './savedRequest';
 import { SavedRequestCard } from './SavedRequestCard';
 
 type SavedRequestListProps = {
@@ -20,8 +20,8 @@ export function SavedRequestList({ requests }: SavedRequestListProps) {
         {requests.length === 0 ? (
           <EmptyRequests />
         ) : (
-          newestFirst(requests).map((request) => (
-            <SavedRequestCard key={request.reference} request={request} />
+          requests.map((request) => (
+            <SavedRequestCard key={request.id} request={request} />
           ))
         )}
       </div>

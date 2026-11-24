@@ -5,29 +5,16 @@ import {
   type InventoryPolicy,
   type UpdateInventoryPolicyRequest,
 } from '@vintner/contracts';
+import { apiFetch } from '@/lib/api';
 import type { SaveResult } from './InventoryPolicyForm';
 
-// Server-only (see ADR 0005): the only place that reads API_URL.
-function getPolicyUrl() {
-  const apiUrl = process.env.API_URL;
-  if (!apiUrl) {
-    throw new Error(
-      'API_URL is not set. Copy apps/web/.env.example to apps/web/.env.local.',
-    );
-  }
-  return `${apiUrl}/settings/inventory-policy`;
-}
+const policyPath = '/settings/inventory-policy';
 
 async function requestPolicy(init?: RequestInit): Promise<SaveResult> {
-  const response = await fetch(getPolicyUrl(), {
-    ...init,
-    cache: 'no-store',
-  });
-  if (!response.ok) {
-    throw new Error(`Inventory policy request failed: ${response.status}`);
-  }
-  const { policy, updatedAt } = inventoryPolicyResponseSchema.parse(
-    await response.json(),
+  const { policy, updatedAt } = await apiFetch(
+    policyPath,
+    inventoryPolicyResponseSchema,
+    init,
   );
   return { policy, changedAt: updatedAt };
 }

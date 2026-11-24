@@ -1,3 +1,5 @@
+import { formatBottleSize } from '@/lib/formatBottleSize';
+
 export type Wine = {
   id: string;
   sku: string;
@@ -10,9 +12,8 @@ export type Wine = {
   available: number;
 };
 
-export function formatBottleSize(sizeMl: number): string {
-  return sizeMl >= 1000 ? `${sizeMl / 1000} L` : `${sizeMl} ml`;
-}
+// Moved to lib/ for saved requests; re-exported so order imports stay as they are.
+export { formatBottleSize };
 
 export const formatVintage = (vintage: number | null) =>
   vintage === null ? 'NV' : String(vintage);

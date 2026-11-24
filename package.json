@@ -19,6 +19,8 @@
     "db:up": "docker compose up -d --wait",
     "db:down": "docker compose down",
     "db:seed": "pnpm --filter @vintner/api db:seed",
+    "migration:generate": "pnpm --filter @vintner/api migration:generate",
+    "migration:run": "pnpm --filter @vintner/api migration:run",
     "build:contracts": "pnpm --filter @vintner/contracts build",
     "prepare": "pnpm build:contracts",
     "check": "pnpm build:contracts && pnpm lint && pnpm typecheck && pnpm test"
