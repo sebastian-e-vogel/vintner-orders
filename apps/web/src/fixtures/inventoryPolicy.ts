@@ -1,4 +1,4 @@
-// TEMPORARY: replaced by the API in the wiring ticket. Delete with fakeSavePolicy.ts.
+// TEMPORARY: only the order screen policy (until its wiring ticket) and savedRequestCount (until #36) still read this.
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 
 export const inventoryPolicyFixture: {

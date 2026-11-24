@@ -26,6 +26,8 @@ packages/contracts   Zod schemas and types shared by both
 docs/adr             Architecture decision records
 ```
 
+`pnpm dev` starts the API and web together. The web app needs `API_URL` in `apps/web/.env.local` (copy `apps/web/.env.example`).
+
 ## Local database
 
 Needs Docker. From the repo root:

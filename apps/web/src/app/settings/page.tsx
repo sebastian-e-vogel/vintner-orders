@@ -1,15 +1,23 @@
+import { connection } from 'next/server';
 import { PageHeading } from '@/components/PageHeading';
 import { InventoryPolicyForm } from '@/features/settings/InventoryPolicyForm';
-import { fakeSavePolicy } from '@/fixtures/fakeSavePolicy';
+import { getInventoryPolicy } from '@/features/settings/api';
+import { saveInventoryPolicy } from '@/features/settings/actions';
 import { inventoryPolicyFixture } from '@/fixtures/inventoryPolicy';
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  await connection();
+  const { policy, changedAt } = await getInventoryPolicy();
+
   return (
     <>
       <PageHeading>Inventory policy</PageHeading>
       <InventoryPolicyForm
-        {...inventoryPolicyFixture}
-        onSave={fakeSavePolicy}
+        currentPolicy={policy}
+        changedAt={changedAt}
+        // TEMPORARY: no endpoint yet, see #36.
+        savedRequestCount={inventoryPolicyFixture.savedRequestCount}
+        onSave={saveInventoryPolicy}
       />
     </>
   );
