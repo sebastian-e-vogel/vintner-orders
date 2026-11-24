@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { winesFixture } from '@/fixtures/wines';
+import { winesFixture } from './testData';
 import { groupByProducer, producerOptions } from './groupByProducer';
 
 const find = (producer: string) =>
@@ -15,8 +15,8 @@ describe('groupByProducer', () => {
   });
 
   it('groups rows with the same wine name together, across vintages and sizes', () => {
-    const pinot = find('Domaine Aubert').wineNames.find(
-      (n) => n.wineName === 'Pinot Noir Reserve',
+    const pinot = find('Domaine Aubert').names.find(
+      (n) => n.name === 'Pinot Noir Reserve',
     )!;
     expect(pinot.wines.map((w) => w.id)).toEqual([
       'wine_03',
@@ -26,13 +26,13 @@ describe('groupByProducer', () => {
   });
 
   it('keeps different wine names of one producer apart, sorted', () => {
-    const names = find('Domaine Aubert').wineNames.map((n) => n.wineName);
+    const names = find('Domaine Aubert').names.map((n) => n.name);
     expect(names).toEqual(['Chardonnay', 'Pinot Noir Reserve']);
   });
 
   it('keeps the same wine name under two producers apart', () => {
     for (const producer of ['Domaine Aubert', 'Domaine Aubrey']) {
-      const ids = find(producer).wineNames.flatMap((n) =>
+      const ids = find(producer).names.flatMap((n) =>
         n.wines.map((w) => w.producer),
       );
       expect(new Set(ids)).toEqual(new Set([producer]));
@@ -43,13 +43,13 @@ describe('groupByProducer', () => {
     const wine = winesFixture[0];
     const groups = groupByProducer([
       wine,
-      { ...wine, id: 'x', wineName: 'Pinot Noir reserve' },
+      { ...wine, id: 'x', name: 'Pinot Noir reserve' },
     ]);
-    expect(groups[0].wineNames).toHaveLength(2);
+    expect(groups[0].names).toHaveLength(2);
   });
 
   it('orders rows newest vintage first, then smallest size first', () => {
-    const rows = find('Riverstone').wineNames[0].wines;
+    const rows = find('Riverstone').names[0].wines;
     expect(rows.map((w) => [w.vintage, w.sizeMl])).toEqual([
       [2019, 750],
       [2018, 750],
@@ -58,9 +58,7 @@ describe('groupByProducer', () => {
   });
 
   it('puts non-vintage rows after the years, ordered by size', () => {
-    const rosato = find('Bellerive').wineNames.find(
-      (n) => n.wineName === 'Rosato',
-    )!;
+    const rosato = find('Bellerive').names.find((n) => n.name === 'Rosato')!;
     expect(rosato.wines.map((w) => [w.vintage, w.sizeMl])).toEqual([
       [2023, 750],
       [null, 750],

@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { expect, it, vi } from 'vitest';
-import { winesFixture } from '@/fixtures/wines';
+import { winesFixture } from './testData';
 import { LastTimeHint } from './LastTimeHint';
 
 it('names the wine and the quantity, and fills the quantity on click', async () => {

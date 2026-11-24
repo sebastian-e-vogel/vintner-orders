@@ -3,10 +3,10 @@ import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
-import { winesFixture } from '@/fixtures/wines';
+import { winesFixture } from './testData';
 import { allProducers } from './groupByProducer';
 import { WineSection } from './WineSection';
-import type { Wine } from './wine';
+import type { Wine } from '@vintner/contracts';
 
 function Harness({
   policy,

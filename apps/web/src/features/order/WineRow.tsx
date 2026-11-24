@@ -12,6 +12,7 @@ import {
   getLineStatus,
   type LineStatusTone,
 } from './lineStatus';
+import type { Wine } from '@vintner/contracts';
 import { focusQuantity, type GoTo } from './goTo';
 import { sanitizeQuantity } from './quantity';
 import {
@@ -19,7 +20,6 @@ import {
   describeWine,
   formatBottleSize,
   formatVintage,
-  type Wine,
 } from './wine';
 
 type WineRowProps = {

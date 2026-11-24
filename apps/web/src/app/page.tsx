@@ -1,21 +1,27 @@
+import { connection } from 'next/server';
 import { PageHeading } from '@/components/PageHeading';
 import { NewOrderDraft } from '@/features/order/NewOrderDraft';
+import { getCustomers, getRecentWines, getWines } from '@/features/order/api';
 import { getInventoryPolicy } from '@/features/settings/api';
-import { customersFixture } from '@/fixtures/customers';
 import { lastTimeFixture } from '@/fixtures/lastTime';
-import { recentWinesFixture } from '@/fixtures/recentWines';
-import { winesFixture } from '@/fixtures/wines';
 
 type HomeProps = {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
 export default async function Home({ searchParams }: HomeProps) {
-  const { customer } = await searchParams;
-  const customerId = customersFixture.some(({ id }) => id === customer)
+  await connection();
+  const [{ customer }, { policy }, customers, wines, recentWines] =
+    await Promise.all([
+      searchParams,
+      getInventoryPolicy(),
+      getCustomers(),
+      getWines(),
+      getRecentWines(),
+    ]);
+  const customerId = customers.some(({ id }) => id === customer)
     ? (customer as string)
     : '';
-  const { policy } = await getInventoryPolicy();
 
   return (
     <div data-wide>
@@ -25,10 +31,10 @@ export default async function Home({ searchParams }: HomeProps) {
         nothing is reserved or confirmed yet.
       </p>
       <NewOrderDraft
-        customers={customersFixture}
+        customers={customers}
         customerId={customerId}
-        wines={winesFixture}
-        recentWines={recentWinesFixture}
+        wines={wines}
+        recentWines={recentWines}
         policy={policy}
         lastTime={lastTimeFixture[customerId]}
       />

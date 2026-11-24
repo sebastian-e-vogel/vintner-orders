@@ -1,6 +1,7 @@
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 import { isStrictBlocked } from './availability';
-import { describeWine, type Wine } from './wine';
+import type { Wine } from '@vintner/contracts';
+import { describeWine } from './wine';
 
 // A wine as the server sends it with a last-time item.
 export type LastTimeWine = Omit<Wine, 'sku'> & { discontinued: boolean };

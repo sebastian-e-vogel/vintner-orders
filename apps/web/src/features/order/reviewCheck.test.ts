@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { checkDraft } from './reviewCheck';
 import { buildRequestLines } from './requestLines';
-import type { Wine } from './wine';
+import type { Wine } from '@vintner/contracts';
 
 const wine = (id: string, available: number): Wine => ({
   id,
   sku: id,
   producer: 'Aubert',
-  wineName: 'Pinot',
+  name: 'Pinot',
   region: 'Burgundy',
   vintage: 2021,
   sizeMl: 750,

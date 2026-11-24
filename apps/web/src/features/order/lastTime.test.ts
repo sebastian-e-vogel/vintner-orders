@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { winesFixture } from '@/fixtures/wines';
+import { winesFixture } from './testData';
 import {
   addAllLabel,
   addedMessage,

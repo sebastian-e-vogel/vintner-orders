@@ -1,7 +1,8 @@
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 import { getLineStatus, type LineStatus } from './lineStatus';
 import { parseQuantity } from './quantity';
-import { formatBottleSize, type Wine } from './wine';
+import type { Wine } from '@vintner/contracts';
+import { formatBottleSize } from './wine';
 
 export type RequestLine = {
   wine: Wine;
@@ -39,7 +40,7 @@ function describeSizeWarning(others: Wine[]): string | undefined {
 const isSameWine = (a: Wine, b: Wine) =>
   a.id !== b.id &&
   a.producer === b.producer &&
-  a.wineName === b.wineName &&
+  a.name === b.name &&
   a.vintage === b.vintage;
 
 // Follows the order the wines were added. Wines missing from the catalog are skipped.

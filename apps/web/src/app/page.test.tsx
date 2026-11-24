@@ -1,5 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import {
+  customersFixture as customers,
+  winesFixture as wines,
+} from '@/features/order/testData';
+import { getCustomers, getRecentWines, getWines } from '@/features/order/api';
 import Home from './page';
 
 vi.mock('@/features/settings/api', () => ({
@@ -7,6 +12,12 @@ vi.mock('@/features/settings/api', () => ({
     policy: 'strict',
     changedAt: '2026-11-02T14:30:00.000Z',
   }),
+}));
+vi.mock('next/server', () => ({ connection: async () => {} }));
+vi.mock('@/features/order/api', () => ({
+  getCustomers: vi.fn(async () => customers),
+  getWines: vi.fn(async () => wines),
+  getRecentWines: vi.fn(async () => wines.slice(0, 2)),
 }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ replace: vi.fn() }) }));
 
@@ -22,13 +33,13 @@ describe('Home page', () => {
     expect(screen.getByLabelText('Customer')).toHaveValue('');
   });
 
-  it("shows the rep's recent wines, at most 10", async () => {
+  it('shows the recent wines from the API', async () => {
     await renderHome({});
     expect(
       screen.getByRole('heading', { name: 'Your recent wines' }),
     ).toBeVisible();
     expect(
-      screen.getByText(/^The last 10 different wines you added/),
+      screen.getByText(/^The last 2 different wines you added/),
     ).toBeVisible();
   });
 
@@ -55,5 +66,22 @@ describe('Home page', () => {
   ])('selects nothing for a %s id', async (_, params) => {
     await renderHome(params);
     expect(screen.getByLabelText('Customer')).toHaveValue('');
+  });
+
+  it('shows the empty states when the API has no data', async () => {
+    vi.mocked(getCustomers).mockResolvedValueOnce([]);
+    vi.mocked(getWines).mockResolvedValueOnce([]);
+    vi.mocked(getRecentWines).mockResolvedValueOnce([]);
+    await renderHome({});
+    expect(screen.getByLabelText('Customer')).toBeDisabled();
+    expect(screen.getByText('No wines to show.')).toBeVisible();
+    expect(screen.getByText("You haven't added any wines yet.")).toBeVisible();
+  });
+
+  it('rejects when a read fails, so error.tsx takes over', async () => {
+    vi.mocked(getWines).mockRejectedValueOnce(new Error('API down'));
+    await expect(Home({ searchParams: Promise.resolve({}) })).rejects.toThrow(
+      'API down',
+    );
   });
 });
