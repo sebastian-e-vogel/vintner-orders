@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { saveInventoryPolicy } from './saveInventoryPolicy';
+import { saveInventoryPolicy } from './actions';
 
 const fetchMock = vi.fn();
 
@@ -30,5 +30,10 @@ describe('saveInventoryPolicy', () => {
   it('throws when the API fails so the form shows its error', async () => {
     fetchMock.mockResolvedValue(new Response('{}', { status: 500 }));
     await expect(saveInventoryPolicy('strict')).rejects.toThrow();
+  });
+
+  it('rejects an invalid policy without calling the API', async () => {
+    await expect(saveInventoryPolicy('loose')).rejects.toThrow();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

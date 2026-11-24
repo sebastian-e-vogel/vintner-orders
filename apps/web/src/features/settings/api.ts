@@ -1,3 +1,5 @@
+import 'server-only';
+
 import {
   inventoryPolicyResponseSchema,
   type InventoryPolicy,
@@ -5,7 +7,7 @@ import {
 } from '@vintner/contracts';
 import type { SaveResult } from './InventoryPolicyForm';
 
-// Server-only: imported by the settings page and the save action, never by a Client Component.
+// Server-only (see ADR 0005): the only place that reads API_URL.
 function getPolicyUrl() {
   const apiUrl = process.env.API_URL;
   if (!apiUrl) {

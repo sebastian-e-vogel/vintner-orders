@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getInventoryPolicy, putInventoryPolicy } from './inventoryPolicyApi';
+import { getInventoryPolicy, putInventoryPolicy } from './api';
 
 const fetchMock = vi.fn();
 const url = 'http://api.test/settings/inventory-policy';

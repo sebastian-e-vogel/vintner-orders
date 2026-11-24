@@ -1,8 +1,8 @@
 import { connection } from 'next/server';
 import { PageHeading } from '@/components/PageHeading';
 import { InventoryPolicyForm } from '@/features/settings/InventoryPolicyForm';
-import { getInventoryPolicy } from '@/features/settings/inventoryPolicyApi';
-import { saveInventoryPolicy } from '@/features/settings/saveInventoryPolicy';
+import { getInventoryPolicy } from '@/features/settings/api';
+import { saveInventoryPolicy } from '@/features/settings/actions';
 import { inventoryPolicyFixture } from '@/fixtures/inventoryPolicy';
 
 export default async function SettingsPage() {
