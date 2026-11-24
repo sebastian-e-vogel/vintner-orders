@@ -1,9 +1,15 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useOptimistic, useState, useTransition } from 'react';
+import { useOptimistic, useRef, useState, useTransition } from 'react';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
 import { CallerSection } from './CallerSection';
+import { LockGroup } from './LockGroup';
+import { checkDraft, type ReviewTarget } from './reviewCheck';
+import { ReviewDialog, type ReviewPhase } from './ReviewDialog';
+import { buildReviewSnapshot, type ReviewSnapshot } from './reviewSnapshot';
+import { isAnswered, type OnSave, type SaveResult } from './saveResult';
+import { useReviewShortcut } from './useReviewShortcut';
 import { isStrictBlocked } from './availability';
 import type { Customer } from './customer';
 import type { GoTo } from './goTo';
@@ -24,6 +30,15 @@ type NewOrderDraftProps = {
   policy: InventoryPolicy;
   // undefined means the customer has no orders or pending requests.
   lastTime?: LastTime;
+  // Saves the request. Not connected yet: without it the dialog cannot save.
+  onSave?: OnSave;
+};
+
+type SaveFlow = {
+  snapshot: ReviewSnapshot;
+  phase: ReviewPhase;
+  // Stays false after "Close (keep order)" while the save is still unconfirmed.
+  isOpen: boolean;
 };
 
 // Temporarily owns the whole draft: the caller and the request lines (wine id -> quantity text).
@@ -35,6 +50,7 @@ export function NewOrderDraft({
   recentWines,
   policy,
   lastTime,
+  onSave,
 }: NewOrderDraftProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -46,6 +62,17 @@ export function NewOrderDraft({
   const [addMessage, setAddMessage] = useState('');
   const [producer, setProducer] = useState(allProducers);
   const [goTo, setGoTo] = useState<GoTo>();
+  const [notes, setNotes] = useState('');
+  // Counts review attempts: errors show from the first one, and each one refocuses the summary.
+  const [reviewAttempts, setReviewAttempts] = useState(0);
+  const [flow, setFlow] = useState<SaveFlow>();
+  // One key per draft, made when saving starts. It survives only an unconfirmed save.
+  const [idempotencyKey, setIdempotencyKey] = useState<string>();
+  const customerRef = useRef<HTMLSelectElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const notesRef = useRef<HTMLTextAreaElement>(null);
+  const producerRef = useRef<HTMLSelectElement>(null);
 
   const chosenCustomer = customers.find(({ id }) => id === chosenId);
   const lastTimeQuantities = Object.fromEntries(
@@ -53,6 +80,21 @@ export function NewOrderDraft({
   );
 
   const requestLines = buildRequestLines(wines, lines, policy);
+  const issues = checkDraft({
+    customerId: chosenId,
+    name,
+    phone,
+    notes,
+    lines: requestLines,
+  });
+  const showErrors = reviewAttempts > 0;
+  const messageFor = (target: ReviewTarget) =>
+    showErrors
+      ? issues.find((issue) => issue.target === target)?.message
+      : undefined;
+  const isLocked =
+    flow?.phase.kind === 'unconfirmed' ||
+    (flow?.phase.kind === 'saving' && flow.phase.isRetry);
 
   function handleCustomerChange(nextId: string) {
     const previous = customers.find(({ id }) => id === chosenId);
@@ -88,6 +130,94 @@ export function NewOrderDraft({
   function handleGoToLine(wineId: string) {
     setAddMessage('');
     goToWines([wineId]);
+  }
+
+  function handleGoToIssue(target: ReviewTarget) {
+    if (typeof target === 'object') return handleGoToLine(target.wineId);
+    const fields = {
+      customer: customerRef,
+      name: nameRef,
+      phone: phoneRef,
+      notes: notesRef,
+      producer: producerRef,
+    };
+    fields[target].current?.focus();
+  }
+
+  function handleReview() {
+    if (flow?.isOpen) return;
+    if (flow?.phase.kind === 'unconfirmed') {
+      setFlow({ ...flow, isOpen: true });
+      return;
+    }
+    setReviewAttempts((attempts) => attempts + 1);
+    if (issues.length > 0) return;
+    setFlow({
+      snapshot: buildReviewSnapshot({
+        customerId: chosenId,
+        customerName: chosenCustomer?.companyName ?? '',
+        name,
+        phone,
+        notes,
+        lines: requestLines,
+      }),
+      phase: { kind: 'review' },
+      isOpen: true,
+    });
+  }
+
+  useReviewShortcut(handleReview);
+
+  function closeDialog() {
+    setFlow((current) =>
+      current?.phase.kind === 'unconfirmed'
+        ? { ...current, isOpen: false }
+        : undefined,
+    );
+  }
+
+  function clearDraft() {
+    handleCustomerChange('');
+    setName('');
+    setPhone('');
+    setLines({});
+    setNotes('');
+    setProducer(allProducers);
+    setGoTo(undefined);
+    setAddMessage('');
+    setReviewAttempts(0);
+  }
+
+  async function handleSave() {
+    if (!onSave || !flow || flow.phase.kind === 'saving') return;
+    const { snapshot } = flow;
+    const key = idempotencyKey ?? crypto.randomUUID();
+    setIdempotencyKey(key);
+    setFlow({
+      ...flow,
+      phase: { kind: 'saving', isRetry: flow.phase.kind === 'unconfirmed' },
+    });
+    let result: SaveResult;
+    try {
+      result = await onSave(snapshot.input, key);
+    } catch {
+      result = { status: 'error' };
+    }
+    if (!isAnswered(result)) {
+      setFlow({ snapshot, phase: { kind: 'unconfirmed' }, isOpen: true });
+      return;
+    }
+    setIdempotencyKey(undefined);
+    if (result.status === 'saved') clearDraft();
+    setFlow({ snapshot, phase: { kind: 'answered', result }, isOpen: true });
+  }
+
+  // Goes to the first short wine that is still in the draft, or else the first line.
+  function handleFixQuantities(wineIds: string[]) {
+    closeDialog();
+    const inDraft = requestLines.map(({ wine }) => wine.id);
+    const target = wineIds.filter((id) => inDraft.includes(id));
+    goToWines(target.length > 0 ? target : inDraft.slice(0, 1));
   }
 
   function handleProducerChange(next: string) {
@@ -154,50 +284,64 @@ export function NewOrderDraft({
 
   return (
     <>
-      <CallerSection
-        customers={customers}
-        customerId={chosenId}
-        name={name}
-        phone={phone}
-        errors={{}}
-        onCustomerChange={handleCustomerChange}
-        onNameChange={setName}
-        onPhoneChange={setPhone}
-      />
-      {chosenCustomer && (
-        <LastTimeCard
-          customerName={chosenCustomer.companyName}
-          isLoading={isPending}
-          last={lastTime}
-          lines={lines}
-          policy={policy}
-          onAdd={addWines}
-          onGoTo={handleGoToLine}
+      <LockGroup isLocked={isLocked}>
+        <CallerSection
+          customers={customers}
+          customerId={chosenId}
+          name={name}
+          phone={phone}
+          errors={{
+            customer: messageFor('customer'),
+            name: messageFor('name'),
+            phone: messageFor('phone'),
+          }}
+          customerRef={customerRef}
+          nameRef={nameRef}
+          phoneRef={phoneRef}
+          onCustomerChange={handleCustomerChange}
+          onNameChange={setName}
+          onPhoneChange={setPhone}
         />
-      )}
+        {chosenCustomer && (
+          <LastTimeCard
+            customerName={chosenCustomer.companyName}
+            isLoading={isPending}
+            last={lastTime}
+            lines={lines}
+            policy={policy}
+            onAdd={addWines}
+            onGoTo={handleGoToLine}
+          />
+        )}
+      </LockGroup>
       <div className="mt-6 grid items-start gap-6 min-[860px]:grid-cols-[minmax(0,1fr)_22.5rem] min-[1240px]:grid-cols-[18rem_minmax(0,1fr)_22.5rem]">
         <div className="min-[860px]:col-start-1 min-[860px]:row-start-1">
-          <RecentWines
-            wines={recentWines}
-            lines={lines}
-            policy={policy}
-            onPick={handleRecentPick}
-          />
+          <LockGroup isLocked={isLocked}>
+            <RecentWines
+              wines={recentWines}
+              lines={lines}
+              policy={policy}
+              onPick={handleRecentPick}
+            />
+          </LockGroup>
         </div>
         <div className="min-w-0 min-[860px]:col-start-1 min-[860px]:row-start-2 min-[1240px]:col-start-2 min-[1240px]:row-start-1">
-          <WineSection
-            wines={wines}
-            lines={lines}
-            policy={policy}
-            lastTimeQuantities={lastTimeQuantities}
-            statusMessage={addMessage}
-            producer={producer}
-            goTo={goTo}
-            onProducerChange={handleProducerChange}
-            onQuantityChange={(wineId, text) =>
-              setLines((current) => ({ ...current, [wineId]: text }))
-            }
-          />
+          <LockGroup isLocked={isLocked}>
+            <WineSection
+              wines={wines}
+              lines={lines}
+              policy={policy}
+              lastTimeQuantities={lastTimeQuantities}
+              statusMessage={addMessage}
+              producer={producer}
+              producerRef={producerRef}
+              goTo={goTo}
+              onProducerChange={handleProducerChange}
+              onQuantityChange={(wineId, text) =>
+                setLines((current) => ({ ...current, [wineId]: text }))
+              }
+            />
+          </LockGroup>
         </div>
         <aside
           aria-label="This request"
@@ -207,11 +351,35 @@ export function NewOrderDraft({
             customerName={chosenCustomer?.companyName}
             lines={requestLines}
             policy={policy}
+            notes={notes}
+            notesRef={notesRef}
+            notesError={messageFor('notes')}
+            issues={showErrors ? issues : []}
+            summaryKey={reviewAttempts}
+            isLocked={isLocked}
+            onNotesChange={setNotes}
+            onGoToIssue={handleGoToIssue}
             onGoTo={handleGoToLine}
             onRemove={handleRemove}
+            onReview={handleReview}
           />
         </aside>
       </div>
+      {flow?.isOpen && (
+        <ReviewDialog
+          snapshot={flow.snapshot}
+          phase={flow.phase}
+          wines={wines}
+          canSave={onSave !== undefined}
+          onSave={handleSave}
+          onClose={closeDialog}
+          onStartNext={() => {
+            closeDialog();
+            customerRef.current?.focus();
+          }}
+          onFixQuantities={handleFixQuantities}
+        />
+      )}
     </>
   );
 }

@@ -11,6 +11,9 @@ type CallerSectionProps = {
   name: string;
   phone: string;
   errors: CallerErrors;
+  customerRef?: React.Ref<HTMLSelectElement>;
+  nameRef?: React.Ref<HTMLInputElement>;
+  phoneRef?: React.Ref<HTMLInputElement>;
   onCustomerChange: (customerId: string) => void;
   onNameChange: (name: string) => void;
   onPhoneChange: (phone: string) => void;
@@ -22,6 +25,9 @@ export function CallerSection({
   name,
   phone,
   errors,
+  customerRef,
+  nameRef,
+  phoneRef,
   onCustomerChange,
   onNameChange,
   onPhoneChange,
@@ -50,6 +56,7 @@ export function CallerSection({
           {(controlProps) => (
             <Select
               {...controlProps}
+              ref={customerRef}
               value={customerId}
               onChange={(event) => onCustomerChange(event.target.value)}
             >
@@ -66,6 +73,7 @@ export function CallerSection({
           {(controlProps) => (
             <Input
               {...controlProps}
+              ref={nameRef}
               type="text"
               value={name}
               onChange={(event) => onNameChange(event.target.value)}
@@ -81,6 +89,7 @@ export function CallerSection({
           {(controlProps) => (
             <Input
               {...controlProps}
+              ref={phoneRef}
               type="tel"
               value={phone}
               onChange={(event) => onPhoneChange(event.target.value)}

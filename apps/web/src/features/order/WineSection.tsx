@@ -20,6 +20,7 @@ type WineSectionProps = {
   // Latest add message, announced to screen readers.
   statusMessage: string;
   producer: string;
+  producerRef?: React.Ref<HTMLSelectElement>;
   goTo?: GoTo;
   onProducerChange: (producer: string) => void;
   onQuantityChange: (wineId: string, quantityText: string) => void;
@@ -32,6 +33,7 @@ export function WineSection({
   lastTimeQuantities,
   statusMessage,
   producer,
+  producerRef,
   goTo,
   onProducerChange,
   onQuantityChange,
@@ -64,6 +66,7 @@ export function WineSection({
           {(controlProps) => (
             <Select
               {...controlProps}
+              ref={producerRef}
               value={producer}
               onChange={(event) => onProducerChange(event.target.value)}
             >

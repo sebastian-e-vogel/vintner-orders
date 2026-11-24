@@ -6,7 +6,7 @@ type FieldControlProps = {
 
 type FieldProps = {
   id: string;
-  label: string;
+  label: React.ReactNode;
   help?: string;
   error?: string;
   children: (controlProps: FieldControlProps) => React.ReactNode;

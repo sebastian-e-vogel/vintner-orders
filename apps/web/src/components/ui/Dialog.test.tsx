@@ -30,4 +30,15 @@ describe('Dialog', () => {
     await userEvent.keyboard('{Escape}');
     expect(onCancel).toHaveBeenCalledOnce();
   });
+
+  it('is wider with the lg size', () => {
+    render(
+      <Dialog labelledBy="t" size="lg">
+        <h2 id="t">Title</h2>
+      </Dialog>,
+    );
+    expect(document.querySelector('dialog')).toHaveClass(
+      'w-[min(36rem,calc(100vw-2rem))]',
+    );
+  });
 });
