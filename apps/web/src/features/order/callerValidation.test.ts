@@ -16,8 +16,10 @@ describe('validateCaller', () => {
 
   describe('name', () => {
     it('rejects an empty name and one with only spaces', () => {
-      expect(errorsFor({ name: '' }).name).toMatch(/Enter the name/);
-      expect(errorsFor({ name: '   ' }).name).toMatch(/Enter the name/);
+      expect(errorsFor({ name: '' }).name).toMatch(/Enter the caller's name/);
+      expect(errorsFor({ name: '   ' }).name).toMatch(
+        /Enter the caller's name/,
+      );
     });
 
     it('accepts 100 characters and rejects 101, after trimming', () => {

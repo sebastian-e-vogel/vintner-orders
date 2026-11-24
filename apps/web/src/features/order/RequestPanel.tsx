@@ -1,6 +1,11 @@
 import Link from 'next/link';
 import { PolicyBadge } from '@/components/PolicyBadge';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
+import { ErrorSummary } from './ErrorSummary';
+import { LockGroup } from './LockGroup';
+import type { ReviewIssue, ReviewTarget } from './reviewCheck';
+import { ReviewButton } from './ReviewButton';
+import { ReviewerNote } from './ReviewerNote';
 import { summarizeRequest, type RequestLine } from './requestLines';
 import { lineToneClass, statusClass } from './WineRow';
 import { describeWine, formatBottleSize, formatVintage } from './wine';
@@ -10,11 +15,22 @@ type RequestPanelProps = {
   customerName?: string;
   lines: RequestLine[];
   policy: InventoryPolicy;
+  notes: string;
+  notesRef?: React.Ref<HTMLTextAreaElement>;
+  notesError?: string;
+  // Shown as a summary when not empty. A new `summaryKey` focuses it again.
+  issues: ReviewIssue[];
+  summaryKey: number;
+  // True after a save that could not be confirmed: only "Retry save" stays usable.
+  isLocked: boolean;
+  onNotesChange: (notes: string) => void;
+  onGoToIssue: (target: ReviewTarget) => void;
   onGoTo: (wineId: string) => void;
   onRemove: (wineId: string) => void;
+  onReview: () => void;
 };
 
-const policyLabel: Record<InventoryPolicy, string> = {
+export const policyLabel: Record<InventoryPolicy, string> = {
   strict: 'Strict policy',
   flexible: 'Flexible policy',
 };
@@ -64,8 +80,17 @@ export function RequestPanel({
   customerName,
   lines,
   policy,
+  notes,
+  notesRef,
+  notesError,
+  issues,
+  summaryKey,
+  isLocked,
+  onNotesChange,
+  onGoToIssue,
   onGoTo,
   onRemove,
+  onReview,
 }: RequestPanelProps) {
   return (
     <div className="flex flex-col gap-4 rounded-md border border-border bg-surface p-6">
@@ -92,51 +117,78 @@ export function RequestPanel({
           )}
         </p>
       </div>
-      {lines.length === 0 ? (
-        <p className="text-muted">
-          Nothing here yet. Type a quantity next to a wine, or add wines from
-          your recent ones or from last time.
-        </p>
-      ) : (
-        <ol aria-label="Wines in this request" className="flex flex-col gap-3">
-          {lines.map(({ wine, quantityText, status, sizeWarning }) => (
-            <li
-              key={wine.id}
-              className={`grid grid-cols-[3rem_1fr_auto] items-start gap-x-3 gap-y-1 rounded-md border-l-4 px-3 py-2 ${lineToneClass[status.tone]}`}
-            >
-              <button
-                type="button"
-                onClick={() => onGoTo(wine.id)}
-                aria-label={`${quantityText || 'No quantity'} of ${describeWine(wine)}. Go to its row.`}
-                className="col-span-2 grid grid-cols-subgrid rounded-md text-left focus-visible:outline-2 focus-visible:outline-ring"
+      <LockGroup isLocked={isLocked}>
+        {lines.length === 0 ? (
+          <p className="text-muted">
+            Nothing here yet. Type a quantity next to a wine, or add wines from
+            your recent ones or from last time.
+          </p>
+        ) : (
+          <ol
+            aria-label="Wines in this request"
+            className="flex flex-col gap-3"
+          >
+            {lines.map(({ wine, quantityText, status, sizeWarning }) => (
+              <li
+                key={wine.id}
+                className={`grid grid-cols-[3rem_1fr_auto] items-start gap-x-3 gap-y-1 rounded-md border-l-4 px-3 py-2 ${lineToneClass[status.tone]}`}
               >
-                <span className="font-bold">{quantityText || '—'}</span>
-                <span className="flex flex-wrap items-center gap-2">
-                  {wine.producer} {wine.wineName} {formatVintage(wine.vintage)}
-                  <span className="rounded-full border border-border px-2 py-0.5 text-xs">
-                    {formatBottleSize(wine.sizeMl)}
+                <button
+                  type="button"
+                  onClick={() => onGoTo(wine.id)}
+                  aria-label={`${quantityText || 'No quantity'} of ${describeWine(wine)}. Go to its row.`}
+                  className="col-span-2 grid grid-cols-subgrid rounded-md text-left focus-visible:outline-2 focus-visible:outline-ring"
+                >
+                  <span className="font-bold">{quantityText || '—'}</span>
+                  <span className="flex flex-wrap items-center gap-2">
+                    {wine.producer} {wine.wineName}{' '}
+                    {formatVintage(wine.vintage)}
+                    <span className="rounded-full border border-border px-2 py-0.5 text-xs">
+                      {formatBottleSize(wine.sizeMl)}
+                    </span>
                   </span>
-                </span>
-              </button>
-              <button
-                type="button"
-                aria-label={`Remove ${describeWine(wine)}`}
-                onClick={() => onRemove(wine.id)}
-                className="rounded-md px-2 text-lg leading-none text-muted hover:bg-danger-soft hover:text-danger focus-visible:outline-2 focus-visible:outline-ring"
-              >
-                ×
-              </button>
-              <div className="col-start-2 col-span-2 flex flex-col gap-1 text-sm">
-                <span className={statusClass[status.tone]}>{status.text}</span>
-                {sizeWarning && (
-                  <span className="text-warning">{sizeWarning}</span>
-                )}
-              </div>
-            </li>
-          ))}
-        </ol>
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Remove ${describeWine(wine)}`}
+                  onClick={() => onRemove(wine.id)}
+                  className="rounded-md px-2 text-lg leading-none text-muted hover:bg-danger-soft hover:text-danger focus-visible:outline-2 focus-visible:outline-ring"
+                >
+                  ×
+                </button>
+                <div className="col-start-2 col-span-2 flex flex-col gap-1 text-sm">
+                  <span className={statusClass[status.tone]}>
+                    {status.text}
+                  </span>
+                  {sizeWarning && (
+                    <span className="text-warning">{sizeWarning}</span>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ol>
+        )}
+        <Summary lines={lines} policy={policy} />
+        <ReviewerNote
+          ref={notesRef}
+          value={notes}
+          error={notesError}
+          onChange={onNotesChange}
+        />
+      </LockGroup>
+      {issues.length > 0 && (
+        <ErrorSummary key={summaryKey} issues={issues} onGoTo={onGoToIssue} />
       )}
-      <Summary lines={lines} policy={policy} />
+      {isLocked && (
+        <p className="text-sm text-muted">
+          The last save could not be confirmed, so the request is locked. Retry
+          to find out whether it went through.
+        </p>
+      )}
+      <ReviewButton
+        label={isLocked ? 'Retry save' : 'Review and save'}
+        onClick={onReview}
+      />
     </div>
   );
 }

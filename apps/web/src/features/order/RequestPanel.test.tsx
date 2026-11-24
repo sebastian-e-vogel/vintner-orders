@@ -22,6 +22,7 @@ function setup(
   lines: Record<string, string>,
   policy: InventoryPolicy = 'strict',
   customerName?: string,
+  extra: Partial<React.ComponentProps<typeof RequestPanel>> = {},
 ) {
   const onRemove = vi.fn();
   const onGoTo = vi.fn();
@@ -30,8 +31,16 @@ function setup(
       customerName={customerName}
       lines={buildRequestLines(catalog, lines, policy)}
       policy={policy}
+      notes=""
+      issues={[]}
+      summaryKey={0}
+      isLocked={false}
+      onNotesChange={vi.fn()}
+      onGoToIssue={vi.fn()}
       onGoTo={onGoTo}
       onRemove={onRemove}
+      onReview={vi.fn()}
+      {...extra}
     />,
   );
   return { onRemove, onGoTo };
@@ -139,5 +148,61 @@ describe('RequestPanel line level', () => {
       'border-warning',
       'bg-warning-soft',
     );
+  });
+});
+
+describe('RequestPanel review controls', () => {
+  it('shows the note field and the review button', async () => {
+    const onNotesChange = vi.fn();
+    const onReview = vi.fn();
+    setup({}, 'strict', undefined, { onNotesChange, onReview });
+    await userEvent.type(screen.getByLabelText(/Note for the reviewer/), 'x');
+    expect(onNotesChange).toHaveBeenCalledWith('x');
+    await userEvent.click(
+      screen.getByRole('button', { name: /Review and save/ }),
+    );
+    expect(onReview).toHaveBeenCalledOnce();
+  });
+
+  it('shows the note error', () => {
+    setup({}, 'strict', undefined, { notesError: 'Too long.' });
+    expect(screen.getByLabelText(/Note for the reviewer/)).toBeInvalid();
+    expect(screen.getByText('Too long.')).toBeInTheDocument();
+  });
+
+  it('lists the issues as buttons that go to their target', async () => {
+    const onGoToIssue = vi.fn();
+    setup({}, 'strict', undefined, {
+      issues: [
+        { target: 'name', message: "Enter the caller's name." },
+        { target: { wineId: 'a' }, message: 'Aubert Pinot: Enter a quantity' },
+      ],
+      onGoToIssue,
+    });
+    const summary = screen.getByRole('group', {
+      name: 'Before you can save, fix these 2 things:',
+    });
+    expect(summary).toHaveFocus();
+    await userEvent.click(
+      within(summary).getByRole('button', { name: "Enter the caller's name." }),
+    );
+    expect(onGoToIssue).toHaveBeenCalledWith('name');
+  });
+
+  it('uses the singular title for one issue', () => {
+    setup({}, 'strict', undefined, {
+      issues: [{ target: 'customer', message: 'Choose a customer.' }],
+    });
+    expect(
+      screen.getByRole('group', { name: 'Before you can save, fix this:' }),
+    ).toBeInTheDocument();
+  });
+
+  it('locks everything but the retry button', () => {
+    setup({ a: '2' }, 'strict', undefined, { isLocked: true });
+    expect(screen.getByLabelText(/Note for the reviewer/)).toBeDisabled();
+    expect(screen.getByRole('button', { name: /^Remove/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Retry save/ })).toBeEnabled();
+    expect(screen.getByText(/could not be confirmed/)).toBeInTheDocument();
   });
 });
