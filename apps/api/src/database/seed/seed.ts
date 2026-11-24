@@ -11,7 +11,7 @@ import { InventoryPolicy } from '../entities/order-request.entity.js';
 import { customers, orders, salesRep, wines } from './seed-data.js';
 
 // Every app table, never the migrations table. One statement, so FK order does not matter.
-const appTables = [
+export const appTables = [
   'order_request_item',
   'order_request',
   'historical_order_item',
