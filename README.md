@@ -68,6 +68,22 @@ pnpm db:seed
 
 It empties every app table (not the migrations table) and inserts fixed demo data: 1 sales rep, 18 wines, 4 customers, 6 past orders, inventory policy `strict`, no order requests. Running it again gives the same data. It refuses to run when `NODE_ENV=production`.
 
+## Perf database
+
+`pnpm db:seed:scale` fills a separate database with realistic volumes, so the dev database and its small seed stay untouched. With the database up (`pnpm db:up`):
+
+```
+pnpm db:seed:scale
+```
+
+It connects to Postgres with the root `.env` credentials, creates the database if missing (default `vintner_perf`, change it with `POSTGRES_PERF_DB`), runs the migrations, empties every app table and loads about 20k wines, 5k customers, 50 sales reps (the current rep included, with about 25% of the activity), 500k historical orders with about 2M items, and 20k saved order requests. Popular wines and heavy-ordering customers are skewed on purpose. The data comes from a seeded generator, so every run produces the same rows (ids included). At the end it prints the row count per table and the duration. It refuses to run when `NODE_ENV=production`, or when the perf database name equals `POSTGRES_DB`.
+
+To run the API against it:
+
+```
+POSTGRES_DB=vintner_perf pnpm dev:api
+```
+
 ## Integration tests
 
 `pnpm test:integration` runs the API tests against a real PostgreSQL 18 started by Testcontainers. It needs Docker running; no `.env` or local Postgres. `pnpm test` stays Docker-free.
