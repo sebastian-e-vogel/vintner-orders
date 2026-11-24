@@ -12,6 +12,7 @@ import {
   OrderRequest,
   OrderRequestItem,
   SalesRep,
+  Settings,
   Wine,
 } from '../src/database/entities/index.js';
 import { SalesRepsService } from '../src/sales-reps/sales-reps.service.js';
@@ -40,7 +41,7 @@ describe('order requests service', () => {
     );
     await dataSource.initialize();
     await dataSource.runMigrations();
-    policies = new InventoryPolicyService(dataSource);
+    policies = new InventoryPolicyService(dataSource.getRepository(Settings));
     service = new OrderRequestsService(
       dataSource,
       dataSource.getRepository(OrderRequest),

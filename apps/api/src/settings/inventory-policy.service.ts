@@ -1,10 +1,10 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 import type {
   InventoryPolicyResponse,
   InventoryPolicy as PolicyValue,
 } from '@vintner/contracts';
-import { DataSource, type EntityManager } from 'typeorm';
+import type { EntityManager, Repository } from 'typeorm';
 import { Settings } from '../database/entities/index.js';
 
 const missingRow = () =>
@@ -14,16 +14,21 @@ const missingRow = () =>
 
 @Injectable()
 export class InventoryPolicyService {
-  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
+  constructor(
+    @InjectRepository(Settings)
+    private readonly settings: Repository<Settings>,
+  ) {}
 
   // Pass the manager of an open transaction to read inside it. With
   // 'pessimistic_read' (FOR SHARE, needs a transaction) set() waits until that
   // transaction ends, so the policy cannot change while the caller uses it.
   async get(
-    manager: EntityManager = this.dataSource.manager,
+    manager?: EntityManager,
     lock?: 'pessimistic_read',
   ): Promise<InventoryPolicyResponse> {
-    const row = await manager.getRepository(Settings).findOne({
+    const row = await (
+      manager?.getRepository(Settings) ?? this.settings
+    ).findOne({
       where: { id: true },
       lock: lock && { mode: lock },
     });
@@ -33,7 +38,7 @@ export class InventoryPolicyService {
 
   // One atomic UPDATE of the only row; it never inserts, so it cannot create a second one.
   async set(policy: PolicyValue): Promise<InventoryPolicyResponse> {
-    const [rows] = (await this.dataSource.query(
+    const [rows] = (await this.settings.query(
       `UPDATE "settings" SET "inventory_policy" = $1, "updated_at" = now() WHERE "id" = true RETURNING "inventory_policy", "updated_at"`,
       [policy],
     )) as [{ inventory_policy: PolicyValue; updated_at: Date }[], number];
