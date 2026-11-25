@@ -10,3 +10,4 @@ playwright-report/
 .env.*
 !.env.example
 next-env.d.ts
+perf/out/
