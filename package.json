@@ -20,6 +20,7 @@
     "db:down": "docker compose down",
     "db:seed": "pnpm --filter @vintner/api db:seed",
     "db:seed:scale": "pnpm --filter @vintner/api db:seed:scale",
+    "bench": "node scripts/bench.mjs",
     "migration:generate": "pnpm --filter @vintner/api migration:generate",
     "migration:run": "pnpm --filter @vintner/api migration:run",
     "build:contracts": "pnpm --filter @vintner/contracts build",
