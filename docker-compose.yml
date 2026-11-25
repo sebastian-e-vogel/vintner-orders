@@ -8,6 +8,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env}
+    # Parallel query workers on the perf DB need more than Docker's default 64 MB /dev/shm.
+    shm_size: 256mb
     ports:
       - '${POSTGRES_PORT:?set POSTGRES_PORT in .env}:5432'
     volumes:
