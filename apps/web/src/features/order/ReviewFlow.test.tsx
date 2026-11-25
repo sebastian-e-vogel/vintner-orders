@@ -8,11 +8,15 @@ import { NewOrderDraft } from './NewOrderDraft';
 import type { OnSave, SaveResult } from './saveResult';
 
 const replace = vi.fn();
+const refresh = vi.fn();
 Element.prototype.scrollIntoView = vi.fn();
 window.matchMedia = vi.fn(() => ({ matches: false })) as never;
-vi.mock('next/navigation', () => ({ useRouter: () => ({ replace }) }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ replace, refresh }) }));
 
-beforeEach(() => replace.mockClear());
+beforeEach(() => {
+  replace.mockClear();
+  refresh.mockClear();
+});
 
 const [bellavista] = customersFixture;
 const wineId = winesFixture[0].id;
@@ -217,6 +221,27 @@ describe('saving', () => {
 });
 
 describe('outcomes', () => {
+  it.each([
+    ['saved', saved, 1],
+    [
+      'rejected',
+      { status: 'rejected', rejection: { reason: 'unknown_customer' } },
+      1,
+    ],
+    ['invalid', { status: 'invalid', fieldErrors: { phone: 'Bad.' } }, 0],
+    ['error', { status: 'error' }, 0],
+  ] as [string, SaveResult, number][])(
+    'refreshes the route data after %s: %i time(s)',
+    async (_name, result, times) => {
+      const user = setup(vi.fn<OnSave>().mockResolvedValue(result));
+      await openReview(user);
+      await user.click(saveButton());
+      await screen.findByRole('dialog');
+      await waitFor(() => expect(refresh).toHaveBeenCalledTimes(times));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    },
+  );
+
   it('saved: shows the details, clears the draft and starts the next order', async () => {
     const onSave = vi.fn<OnSave>().mockResolvedValue(saved);
     const user = setup(onSave);

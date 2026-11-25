@@ -32,7 +32,7 @@ type NewOrderDraftProps = {
   policy: InventoryPolicy;
   // undefined means the customer has no orders or pending requests.
   lastTime: LastTime | null;
-  // Saves the request. Not connected yet: without it the dialog cannot save.
+  // Saves the request. Without it the dialog cannot save.
   onSave?: OnSave;
 };
 
@@ -211,6 +211,8 @@ export function NewOrderDraft({
     }
     setIdempotencyKey(undefined);
     if (result.status === 'saved') clearDraft();
+    // Stock, recent wines and the saved count changed. The dialog stays as it is.
+    if (result.status !== 'invalid') router.refresh();
     setFlow({ snapshot, phase: { kind: 'answered', result }, isOpen: true });
   }
 

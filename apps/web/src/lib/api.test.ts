@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { apiFetch } from './api';
+import { apiFetch, apiRequest } from './api';
 
 const fetchMock = vi.fn();
 const schema = {
@@ -78,4 +78,18 @@ describe('apiFetch', () => {
       expect(fetchMock).not.toHaveBeenCalled();
     },
   );
+});
+
+describe('apiRequest', () => {
+  it('returns non-2xx responses to the caller', async () => {
+    respond({ reason: 'x' }, 422);
+    const response = await apiRequest('/thing');
+    expect(response.status).toBe(422);
+  });
+
+  it('fails clearly without calling fetch when API_URL is not set', async () => {
+    vi.stubEnv('API_URL', '');
+    await expect(apiRequest('/thing')).rejects.toThrow('API_URL is not set');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });
