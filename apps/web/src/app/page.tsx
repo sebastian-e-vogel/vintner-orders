@@ -1,5 +1,6 @@
 import { connection } from 'next/server';
 import { PageHeading } from '@/components/PageHeading';
+import { saveOrderRequest } from '@/features/order/actions';
 import { NewOrderDraft } from '@/features/order/NewOrderDraft';
 import {
   getCustomers,
@@ -42,6 +43,7 @@ export default async function Home({ searchParams }: HomeProps) {
         recentWines={recentWines}
         policy={policy}
         lastTime={lastTime}
+        onSave={saveOrderRequest}
       />
     </div>
   );

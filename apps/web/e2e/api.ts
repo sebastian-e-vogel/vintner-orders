@@ -4,7 +4,7 @@ import type { APIRequestContext } from '@playwright/test';
 export const API_URL = 'http://localhost:3101';
 
 // Fixed ids from the deterministic seed.
-const customerId = 'c1000000-0000-4000-8000-000000000001';
+export const customerId = 'c1000000-0000-4000-8000-000000000001';
 export const wineIds = {
   inStock: 'b1000000-0000-4000-8000-000000000001',
   outOfStock: 'b1000000-0000-4000-8000-000000000006',
