@@ -5,16 +5,17 @@ import { Repository } from 'typeorm';
 import { Wine } from '../database/entities/index.js';
 import { SalesRepsService } from '../sales-reps/sales-reps.service.js';
 
-// Newest date per wine first (GROUP BY dedups), then the limit, so repeats never shrink the list.
+// "Recent" means the newest 200 items of each source (orders, requests), so the query never reads
+// the rep's whole history. Newest date per wine first (GROUP BY dedups), then the limit.
 const recentWinesSql = `
   WITH activity AS (
-    SELECT i.wine_id, o.ordered_at AS at
-    FROM historical_order o JOIN historical_order_item i ON i.order_id = o.id
-    WHERE o.sales_rep_id = $1
+    (SELECT i.wine_id, o.ordered_at AS at
+     FROM historical_order o JOIN historical_order_item i ON i.order_id = o.id
+     WHERE o.sales_rep_id = $1 ORDER BY o.ordered_at DESC LIMIT 200)
     UNION ALL
-    SELECT i.wine_id, r.created_at
-    FROM order_request r JOIN order_request_item i ON i.request_id = r.id
-    WHERE r.sales_rep_id = $1
+    (SELECT i.wine_id, r.created_at
+     FROM order_request r JOIN order_request_item i ON i.request_id = r.id
+     WHERE r.sales_rep_id = $1 ORDER BY r.created_at DESC LIMIT 200)
   ), latest AS (
     SELECT wine_id, max(at) AS at FROM activity GROUP BY wine_id
   )
