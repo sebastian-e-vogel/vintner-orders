@@ -284,5 +284,77 @@ describe('last time and recent wines queries', () => {
 
       expect(result.map((w) => w.id)).toEqual([uuid(1)]);
     });
+
+    it('cuts the 10th place inside a tie group by lowest wine id', async () => {
+      for (let n = 1; n <= 14; n++) await addWine(n);
+      await addOrder(day(9), [[14, 1]]);
+      // Two orders and a request tied on day 5 hold 12 wines; only the 10 lowest ids fit.
+      await addOrder(day(5), [
+        [12, 1],
+        [3, 1],
+        [1, 1],
+        [11, 1],
+      ]);
+      await addOrder(day(5), [
+        [9, 1],
+        [2, 1],
+        [10, 1],
+        [4, 1],
+      ]);
+      await addRequest(day(5), [
+        [8, 1],
+        [13, 1],
+        [5, 1],
+        [6, 1],
+      ]);
+      await addOrder(day(1), [[7, 1]]);
+
+      const result = await recent.list();
+
+      expect(result.map((w) => w.id)).toEqual(
+        [14, 1, 2, 3, 4, 5, 6, 8, 9, 10].map(uuid),
+      );
+    });
+
+    it('uses the request date when it is the newest of a wine in both sources', async () => {
+      for (let n = 1; n <= 12; n++) await addWine(n);
+      for (let n = 2; n <= 12; n++) await addOrder(day(n), [[n, 1]]);
+      await addOrder(day(1), [[1, 1]]);
+      await addRequest(day(30), [[1, 1]]);
+
+      const result = await recent.list();
+
+      expect(result.map((w) => w.id)).toEqual(
+        [1, 12, 11, 10, 9, 8, 7, 6, 5, 4].map(uuid),
+      );
+    });
+
+    it('handles one source with fewer than 10 wines and the other with many', async () => {
+      for (let n = 1; n <= 15; n++) await addWine(n);
+      await addRequest(day(1), [
+        [1, 1],
+        [2, 1],
+      ]);
+      for (let n = 3; n <= 15; n++) await addOrder(day(n), [[n, 1]]);
+
+      const result = await recent.list();
+
+      expect(result.map((w) => w.id)).toEqual(
+        [15, 14, 13, 12, 11, 10, 9, 8, 7, 6].map(uuid),
+      );
+    });
+
+    it('only considers the newest 200 items of each source', async () => {
+      for (let n = 1; n <= 10; n++) await addWine(n);
+      // Wine 1 is the oldest order, and 200 newer single-item orders (wines 2..10) push it out.
+      await addOrder(day(1), [[1, 1]]);
+      for (let k = 0; k < 200; k++)
+        await addOrder(day(2 + k), [[2 + (k % 9), 1]]);
+      expect((await recent.list()).map((w) => w.id)).not.toContain(uuid(1));
+
+      // Requests have their own window, so an old request still brings wine 1 back.
+      await addRequest(day(1), [[1, 1]]);
+      expect((await recent.list()).map((w) => w.id)).toContain(uuid(1));
+    });
   });
 });
