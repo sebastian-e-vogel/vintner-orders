@@ -14,6 +14,9 @@ export type RequestLine = {
   sizeWarning?: string;
 };
 
+// A draft line keeps its own copy of the wine, so it does not depend on which wines are on screen.
+export type DraftLine = { wine: Wine; quantityText: string };
+
 export type RequestSummary = {
   wineCount: number;
   bottleCount: number;
@@ -43,16 +46,12 @@ const isSameWine = (a: Wine, b: Wine) =>
   a.name === b.name &&
   a.vintage === b.vintage;
 
-// Follows the order the wines were added. Wines missing from the catalog are skipped.
+// Follows the order the wines were added.
 export function buildRequestLines(
-  wines: Wine[],
-  lines: Record<string, string>,
+  lines: Record<string, DraftLine>,
   policy: InventoryPolicy,
 ): RequestLine[] {
-  const inDraft = Object.entries(lines).flatMap(([wineId, quantityText]) => {
-    const wine = wines.find(({ id }) => id === wineId);
-    return wine ? [{ wine, quantityText }] : [];
-  });
+  const inDraft = Object.values(lines);
   return inDraft.map(({ wine, quantityText }) => {
     const status = getLineStatus({
       quantityText,

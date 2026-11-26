@@ -7,7 +7,6 @@ import { ReadBack } from './ReadBack';
 import { Actions, SaveOutcome } from './SaveOutcome';
 import type { ReviewSnapshot } from './reviewSnapshot';
 import type { AnsweredSave } from './saveResult';
-import type { Wine } from '@vintner/contracts';
 
 export type ReviewPhase =
   | { kind: 'review' }
@@ -18,7 +17,6 @@ export type ReviewPhase =
 type ReviewDialogProps = {
   snapshot: ReviewSnapshot;
   phase: ReviewPhase;
-  wines: Wine[];
   // False until the page passes a save function.
   canSave: boolean;
   onSave: () => void;
@@ -35,7 +33,6 @@ function closeDialogOf(button: HTMLElement) {
 export function ReviewDialog({
   snapshot,
   phase,
-  wines,
   canSave,
   onSave,
   onClose,
@@ -59,7 +56,7 @@ export function ReviewDialog({
         <SaveOutcome
           result={phase.result}
           customerName={snapshot.customerName}
-          wines={wines}
+          wines={snapshot.lines.map(({ wine }) => wine)}
           onBackToEdit={onClose}
           onStartNext={(event) => {
             closeDialogOf(event.currentTarget);

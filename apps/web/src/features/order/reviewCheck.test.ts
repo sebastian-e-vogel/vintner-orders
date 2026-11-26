@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { draftLinesOf } from './testData';
 import { checkDraft } from './reviewCheck';
 import { buildRequestLines } from './requestLines';
 import type { Wine } from '@vintner/contracts';
@@ -29,7 +30,7 @@ const check = (
   checkDraft({
     ...valid,
     ...changes,
-    lines: buildRequestLines(catalog, lines, policy),
+    lines: buildRequestLines(draftLinesOf(catalog, lines), policy),
   });
 
 describe('checkDraft', () => {

@@ -1,4 +1,5 @@
 // Small catalog and customers shared by the order tests.
+import type { DraftLine } from './requestLines';
 import type { Customer, Wine } from '@vintner/contracts';
 
 export const winesFixture: Wine[] = [
@@ -235,3 +236,15 @@ export const customersFixture: Customer[] = [
     email: 'hannah@oakroom.example',
   },
 ];
+
+// Builds draft lines (wine copy and quantity text) from a catalog and quantity texts by wine id.
+export const draftLinesOf = (
+  wines: Wine[],
+  texts: Record<string, string>,
+): Record<string, DraftLine> =>
+  Object.fromEntries(
+    Object.entries(texts).map(([id, quantityText]) => [
+      id,
+      { wine: wines.find((wine) => wine.id === id)!, quantityText },
+    ]),
+  );
