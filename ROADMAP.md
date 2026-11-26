@@ -19,8 +19,8 @@ Each phase leaves the repository in a demoable state. Performance work always re
 ## 2. Make it slow, then fast
 
 - [ ] Deterministic seed generator at scale (~20k wines, ~5k customers, millions of order rows), written against the phase 1 schema
-- [ ] Benchmark harness (k6 or autocannon), results kept in `docs/perf`
-- [ ] Baseline measurements and `EXPLAIN ANALYZE` on the main queries
+- [x] Benchmark harness (k6 or autocannon), results kept in `docs/perf`
+- [x] Baseline measurements and `EXPLAIN ANALYZE` on the main queries
 - [ ] Composite indexes, rewritten queries
 - [ ] Keyset (cursor) pagination vs OFFSET at depth
 - [ ] Wine search with autocomplete: `pg_trgm`, full-text, `unaccent`; accessible combobox
