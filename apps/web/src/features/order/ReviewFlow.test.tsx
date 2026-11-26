@@ -401,6 +401,30 @@ describe('outcomes', () => {
     );
   });
 
+  it('keeps a line whose wine left the wines prop in the panel, review and save input', async () => {
+    const onSave = vi.fn<OnSave>().mockResolvedValue(saved);
+    const props = {
+      customers: customersFixture,
+      customerId: bellavista.id,
+      recentWines: [],
+      policy: 'strict' as InventoryPolicy,
+      lastTime: null,
+      onSave,
+    };
+    const view = render(<NewOrderDraft {...props} wines={winesFixture} />);
+    const user = userEvent.setup();
+    await fillValid(user);
+    view.rerender(<NewOrderDraft {...props} wines={[]} />);
+    const panel = screen.getByRole('complementary', { name: 'This request' });
+    expect(panel).toHaveTextContent('Domaine Aubert Pinot Noir Reserve 2021');
+    await user.click(reviewButton());
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toHaveTextContent('Domaine Aubert Pinot Noir Reserve 2021');
+    await user.click(saveButton());
+    await waitFor(() => expect(onSave).toHaveBeenCalledTimes(1));
+    expect(onSave.mock.calls[0][0].lines).toEqual([{ wineId, quantity: 6 }]);
+  });
+
   it('over stock: names the policy and goes to the first short wine', async () => {
     const onSave = vi.fn<OnSave>().mockResolvedValue({
       status: 'rejected',

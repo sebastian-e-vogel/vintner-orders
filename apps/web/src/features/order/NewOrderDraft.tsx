@@ -18,7 +18,7 @@ import { addedMessage, type SkippedCounts } from './lastTime';
 import { LastTimeCard } from './LastTimeCard';
 import { RecentWines } from './RecentWines';
 import { RequestPanel } from './RequestPanel';
-import { buildRequestLines } from './requestLines';
+import { buildRequestLines, type DraftLine } from './requestLines';
 import { allProducers } from './groupByProducer';
 import { WineSection } from './WineSection';
 import type { Wine } from '@vintner/contracts';
@@ -43,7 +43,7 @@ type SaveFlow = {
   isOpen: boolean;
 };
 
-// Temporarily owns the whole draft: the caller and the request lines (wine id -> quantity text).
+// Temporarily owns the whole draft: the caller and the request lines (wine id -> wine copy and quantity text).
 // Lines are not kept across a refresh yet; the review-and-save flow decides how the draft survives.
 export function NewOrderDraft({
   customers,
@@ -60,7 +60,7 @@ export function NewOrderDraft({
   const [chosenId, setChosenId] = useOptimistic(customerId);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [lines, setLines] = useState<Record<string, string>>({});
+  const [lines, setLines] = useState<Record<string, DraftLine>>({});
   const [addMessage, setAddMessage] = useState('');
   const [producer, setProducer] = useState(allProducers);
   const [goTo, setGoTo] = useState<GoTo>();
@@ -81,7 +81,10 @@ export function NewOrderDraft({
     (lastTime?.items ?? []).map(({ wine, quantity }) => [wine.id, quantity]),
   );
 
-  const requestLines = buildRequestLines(wines, lines, policy);
+  const quantityTexts = Object.fromEntries(
+    Object.entries(lines).map(([id, { quantityText }]) => [id, quantityText]),
+  );
+  const requestLines = buildRequestLines(lines, policy);
   const issues = checkDraft({
     customerId: chosenId,
     name,
@@ -230,9 +233,8 @@ export function NewOrderDraft({
     setGoTo(undefined);
   }
 
-  // Puts wines in the request with an empty quantity, announces it in the catalog
-  // and goes to the first one. Wines already in the request or missing from the
-  // catalog are left alone. `source` and `skipped` only describe a bulk add, such
+  // Puts last-time wines in the request with an empty quantity, announces it in the
+  // catalog and goes to the first one. Wines already in the request are left alone. `source` and `skipped` only describe a bulk add, such
   // as "Add all" from last time, which also goes through and highlights the
   // last-time wines that were already in the request.
   function addWines(
@@ -240,13 +242,15 @@ export function NewOrderDraft({
     source?: string,
     skipped?: SkippedCounts,
   ) {
-    const added = wines.filter(
-      ({ id }) => wineIds.includes(id) && lines[id] === undefined,
-    );
+    const added = (lastTime?.items ?? [])
+      .map(({ wine }) => wine)
+      .filter(({ id }) => wineIds.includes(id) && lines[id] === undefined);
     if (added.length === 0) return;
     setLines((current) => ({
       ...current,
-      ...Object.fromEntries(added.map(({ id }) => [id, ''])),
+      ...Object.fromEntries(
+        added.map((wine) => [wine.id, { wine, quantityText: '' }]),
+      ),
     }));
     setAddMessage(addedMessage(added, source, skipped));
     const addedIds = added.map(({ id }) => id);
@@ -257,6 +261,12 @@ export function NewOrderDraft({
             .filter((id) => addedIds.includes(id) || lines[id] !== undefined)
         : addedIds,
     );
+  }
+
+  function handleQuantityChange(wineId: string, quantityText: string) {
+    const wine = lines[wineId]?.wine ?? wines.find(({ id }) => id === wineId);
+    if (!wine) return;
+    setLines((current) => ({ ...current, [wineId]: { wine, quantityText } }));
   }
 
   function handleRemove(wineId: string) {
@@ -311,7 +321,7 @@ export function NewOrderDraft({
             customerName={chosenCustomer.name}
             isLoading={isPending}
             last={lastTime}
-            lines={lines}
+            lines={quantityTexts}
             policy={policy}
             onAdd={addWines}
             onGoTo={handleGoToLine}
@@ -323,7 +333,7 @@ export function NewOrderDraft({
           <LockGroup isLocked={isLocked}>
             <RecentWines
               wines={recentWines}
-              lines={lines}
+              lines={quantityTexts}
               policy={policy}
               onPick={handleRecentPick}
             />
@@ -333,7 +343,7 @@ export function NewOrderDraft({
           <LockGroup isLocked={isLocked}>
             <WineSection
               wines={wines}
-              lines={lines}
+              lines={quantityTexts}
               policy={policy}
               lastTimeQuantities={lastTimeQuantities}
               statusMessage={addMessage}
@@ -341,9 +351,7 @@ export function NewOrderDraft({
               producerRef={producerRef}
               goTo={goTo}
               onProducerChange={handleProducerChange}
-              onQuantityChange={(wineId, text) =>
-                setLines((current) => ({ ...current, [wineId]: text }))
-              }
+              onQuantityChange={handleQuantityChange}
             />
           </LockGroup>
         </div>
@@ -373,7 +381,6 @@ export function NewOrderDraft({
         <ReviewDialog
           snapshot={flow.snapshot}
           phase={flow.phase}
-          wines={wines}
           canSave={onSave !== undefined}
           onSave={handleSave}
           onClose={closeDialog}

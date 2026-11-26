@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { buildRequestLines } from './requestLines';
 import { buildReviewSnapshot } from './reviewSnapshot';
-import { winesFixture } from './testData';
+import { draftLinesOf, winesFixture } from './testData';
 
 it('builds the input from the draft and trimmed values for the read-back', () => {
   const [first, second] = winesFixture;
@@ -12,8 +12,7 @@ it('builds the input from the draft and trimmed values for the read-back', () =>
     phone: ' 1234567 ',
     notes: ' Deliver early ',
     lines: buildRequestLines(
-      winesFixture,
-      { [first.id]: '3', [second.id]: '12' },
+      draftLinesOf(winesFixture, { [first.id]: '3', [second.id]: '12' }),
       'flexible',
     ),
   });

@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
+import { draftLinesOf } from './testData';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import type { InventoryPolicy } from '@/lib/inventoryPolicy';
@@ -29,7 +30,7 @@ function setup(
   render(
     <RequestPanel
       customerName={customerName}
-      lines={buildRequestLines(catalog, lines, policy)}
+      lines={buildRequestLines(draftLinesOf(catalog, lines), policy)}
       policy={policy}
       notes=""
       issues={[]}
