@@ -149,6 +149,35 @@ describe('last time and recent wines queries', () => {
       );
     });
 
+    it('returns the newest request when there are only requests', async () => {
+      await addRequest(day(1), [[1, 1]]);
+      await addRequest(day(3), [[2, 5]]);
+      await addRequest(day(2), [[1, 2]]);
+
+      const result = await customers.lastTime(CUSTOMER);
+
+      expect(result).toMatchObject({
+        kind: 'request',
+        at: day(3).toISOString(),
+        items: [{ quantity: 5 }],
+      });
+    });
+
+    it('returns the newest order when there are only orders', async () => {
+      await addOrder(day(1), [[1, 1]]);
+      await addOrder(day(3), [[2, 6]]);
+      await addOrder(day(2), [[1, 2]]);
+
+      const result = await customers.lastTime(CUSTOMER);
+
+      expect(result).toMatchObject({
+        kind: 'order',
+        at: day(3).toISOString(),
+        salesRepName: 'Marta',
+        items: [{ quantity: 6 }],
+      });
+    });
+
     it('returns the order when it is newer than the request', async () => {
       await addRequest(day(1), [[1, 1]]);
       await addOrder(day(2), [[2, 3]]);
