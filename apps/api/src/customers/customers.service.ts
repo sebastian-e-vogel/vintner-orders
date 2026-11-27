@@ -19,18 +19,22 @@ const itemsSql = (table: string, foreignKey: string) => `
 const orderItemsSql = itemsSql('historical_order_item', 'order_id');
 const requestItemsSql = itemsSql('order_request_item', 'request_id');
 
-// The newest of the two sources; on a tie the order wins (rank), then the lowest id.
+// Each source takes its own newest row through its (customer_id, date) index; then the order
+// wins a tie (rank), then the lowest id. The sales rep is looked up only for the winner.
 const newestSql = `
-  SELECT kind, id, at, sales_rep_name, contact_name FROM (
-    SELECT 'order' AS kind, 0 AS rank, o.id, o.ordered_at AS at,
-      (SELECT name FROM sales_rep WHERE id = o.sales_rep_id) AS sales_rep_name,
-      NULL AS contact_name
-    FROM historical_order o WHERE o.customer_id = $1
+  SELECT a.kind, a.id, a.at, a.contact_name,
+    (SELECT name FROM sales_rep WHERE id = a.sales_rep_id) AS sales_rep_name
+  FROM (
+    (SELECT 'order' AS kind, 0 AS rank, id, ordered_at AS at, sales_rep_id,
+      NULL::text AS contact_name
+     FROM historical_order WHERE customer_id = $1
+     ORDER BY ordered_at DESC, id LIMIT 1)
     UNION ALL
-    SELECT 'request', 1, r.id, r.created_at, NULL, r.contact_name
-    FROM order_request r WHERE r.customer_id = $1
-  ) activity
-  ORDER BY at DESC, rank, id
+    (SELECT 'request', 1, id, created_at, NULL::uuid, contact_name
+     FROM order_request WHERE customer_id = $1
+     ORDER BY created_at DESC, id LIMIT 1)
+  ) a
+  ORDER BY a.at DESC, a.rank, a.id
   LIMIT 1`;
 
 @Injectable()
